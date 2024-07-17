@@ -1,7 +1,16 @@
-# Governance Watchdog Notifications
+# 🐕 Governance Watchdog
+
+A monorepo for our governance watchdog, a system that monitors Mento Governance events on-chain and sends notifications about them to Discord and Telegram.
+
+<!-- markdown-link-check-disable -->
+
+Mento Devs can view the [full project spec in our Notion](https://www.notion.so/mentolabs/Governance-Watchdog-d168a8110a53430a90e2f5ab65f103f5?pvs=4)
+
+<!-- markdown-link-check-enable -->
+
+![Architecture Diagram](arch-diagram.png)
 
 - TODO: Explain how to deploy updates to cloud function (either via tf or gcloud)
-- TODO: Explain high level architecture (or link to tech spec in notion)
 - TODO: Fix local failure of secret manager
 
 ## Requirements
