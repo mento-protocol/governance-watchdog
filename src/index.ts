@@ -22,32 +22,27 @@ import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
 async function sendDiscordNotifications(matchedTransactionReceipts: unknown) {
   if (!Array.isArray(matchedTransactionReceipts)) {
-    // TODO: Sentrify this
-    console.error(
-      "Request body is not an array of transaction receipts but was:",
-      matchedTransactionReceipts,
+    throw new Error(
+      `Request body is not an array of transaction receipts but was: ${JSON.stringify(matchedTransactionReceipts)}`,
     );
-    return;
   }
 
   for (const receipt of matchedTransactionReceipts) {
     if (!isTransactionReceipt(receipt)) {
-      // TODO: Sentrify this
-      console.error("'receipt' is not of type 'TransactionReceipt':", receipt);
-      return;
+      throw new Error(
+        `'receipt' is not of type 'TransactionReceipt': ${JSON.stringify(receipt)}`,
+      );
     }
 
     if (!hasLogs(receipt.logs)) {
-      // TODO: Sentrify this
-      console.error("Transaction receipt has invalid logs:", receipt.logs);
-      return;
+      throw new Error(
+        `Transaction receipt has invalid logs: ${JSON.stringify(receipt.logs)}`,
+      );
     }
 
     for (const log of receipt.logs) {
       if (!log.topics) {
-        // TODO: Sentrify this
-        console.error("No topics found in log");
-        return;
+        throw new Error("No topics found in log");
       }
 
       const event = decodeEventLog({
@@ -62,9 +57,9 @@ async function sendDiscordNotifications(matchedTransactionReceipts: unknown) {
       });
 
       if (!isProposalCreatedEvent(event)) {
-        // TODO: Sentrify this
-        console.error("Event is not a ProposalCreatedEvent:", event);
-        return;
+        throw new Error(
+          `Event is not a ProposalCreatedEvent: ${JSON.stringify(event)}`,
+        );
       }
 
       const discordWebhookClient = new WebhookClient({
@@ -88,7 +83,6 @@ export const watchdogNotifier: HttpFunction = async (
 
     res.status(200).send("Event successfully processed");
   } catch (error) {
-    // TODO: Sentrify this
     console.error("Error processing request:", error);
     res.status(500).send("Something went wrong 🤔");
   }
