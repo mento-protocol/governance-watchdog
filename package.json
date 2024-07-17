@@ -15,7 +15,7 @@
     "generate:dotenv:yaml": "awk '{ gsub(/=/, \": \", $0); print $0 }' .env > .env.yaml",
     "logs": "gcloud functions logs read watchdog-notifications --gen2 --region europe-west1 --format json | jq",
     "prestart": "npm run build",
-    "start": "functions-framework --target=watchdogNotifier",
+    "start": "NODE_ENV=development functions-framework --target=watchdogNotifier",
     "test": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
     "test-in-prod": "./test-deployed-function.sh"
   },
