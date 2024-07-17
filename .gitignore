@@ -1,0 +1,14 @@
+# Terraform Stuff
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+errored.tfstate
+*.tfvars
+
+# Cloud Function Stuff
+.env
+.env.yaml
+dist/
+function-source.zip
+node_modules/
