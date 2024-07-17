@@ -6,12 +6,6 @@ entry_point="watchdogNotifier"
 function_name="watchdog-notifications"
 region="watchdog-notifications"
 
-echo "Running npm install..."
-npm install
-
-echo "Compiling TypeScript..."
-npm run build
-
 echo "Generating temporary .env.yaml..."
 npm run generate:dotenv:yaml
 
