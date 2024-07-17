@@ -1,17 +1,25 @@
 # 🐕 Governance Watchdog
 
-A monorepo for our governance watchdog, a system that monitors Mento Governance events on-chain and sends notifications about them to Discord and Telegram.
+- TODO: Fix local failure of secret manager
 
 <!-- markdown-link-check-disable -->
 
-Mento Devs can view the [full project spec in our Notion](https://www.notion.so/mentolabs/Governance-Watchdog-d168a8110a53430a90e2f5ab65f103f5?pvs=4)
+A monorepo for our governance watchdog, a system that monitors Mento Governance events on-chain and sends notifications about them to Discord and Telegram. Mento Devs can view the [full project spec in our Notion.](https://www.notion.so/mentolabs/Governance-Watchdog-d168a8110a53430a90e2f5ab65f103f5?pvs=4)
 
 <!-- markdown-link-check-enable -->
 
 ![Architecture Diagram](arch-diagram.png)
 
-- TODO: Explain how to deploy updates to cloud function (either via tf or gcloud)
-- TODO: Fix local failure of secret manager
+- [Requirements](#requirements)
+- [Local Development of Cloud Function Code](#local-development-of-cloud-function-code)
+- [Testing the Deployed Cloud Function](#testing-the-deployed-cloud-function)
+- [Infra Setup (when project is deployed already)](#infra-setup-when-project-is-deployed-already)
+- [First Time Infra Deployment via Terraform](#first-time-infra-deployment-via-terraform)
+  - [Google Cloud Permission Requirements](#google-cloud-permission-requirements)
+  - [Deployment from scratch](#deployment-from-scratch)
+  - [Migrate Terraform State to Google Cloud](#migrate-terraform-state-to-google-cloud)
+- [Updating the Cloud Function](#updating-the-cloud-function)
+- [Teardown](#teardown)
 
 ## Requirements
 
@@ -36,7 +44,15 @@ Mento Devs can view the [full project spec in our Notion](https://www.notion.so/
    # For macOS
    brew install trunk-io
 
-   # For other options check https://docs.trunk.io/check/usage
+   # For other systems, check https://docs.trunk.io/check/usage
+   ```
+
+   Optionally, you can also install the [Trunk VS Code Extension](https://marketplace.visualstudio.com/items?itemName=Trunk.io)
+
+1. Create a local `.env` file and fill in the required values
+
+   ```sh
+   cp .env.example .env
    ```
 
 ## Local Development of Cloud Function Code
@@ -49,7 +65,16 @@ Mento Devs can view the [full project spec in our Notion](https://www.notion.so/
   curl -H "Content-Type: application/json" -d @src/proposal-created.fixture.json localhost:8080
   ```
 
-## Setup (when project is deployed already)
+## Testing the Deployed Cloud Function
+
+You can test the deployed cloud function manually by using the `./src/proposal-created.fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
+
+```sh
+./test-deployed-function.sh
+# or `npm run test-in-prod` if you prefer npm to call this script
+```
+
+## Infra Setup (when project is deployed already)
 
 1. Set your local `gcloud` project to the watchdog project:
 
@@ -100,7 +125,7 @@ Mento Devs can view the [full project spec in our Notion](https://www.notion.so/
 
    - This is necessary for Terraform to be able to create QuickAlerts when deploying this project
 
-## First time deployment setup (if project has not been deployed already)
+## First Time Infra Deployment via Terraform
 
 ### Google Cloud Permission Requirements
 
@@ -161,37 +186,60 @@ In order to create this project from scratch using the [terraform-google-bootstr
    gcloud auth application-default set-quota-project $project_id
    ```
 
-7. Migrate the terraform state from your local backend (`terraform.tfstate`) to a remote backend in a cloud storage bucket:
+### Migrate Terraform State to Google Cloud
 
-   1. Copy the name of the created terraform state bucket to your clipboard:
+For all team members to be able to manage the Google Cloud infrastructure, you need to migrate the terraform state from your local backend (`terraform.tfstate`) to a remote backend in a Google Cloud Storage Bucket:
 
-      ```sh
-      terraform state show "module.bootstrap.google_storage_bucket.org_terraform_state" | grep name | awk -F '"' '{print $2}' | pbcopy
-      ```
+1. Copy the name of the created terraform state bucket to your clipboard:
 
-   1. Uncomment the original `backend` section in `main.tf` and replace the bucket name with the new one you just copied
-   1. Complete the state migration:
+   ```sh
+   terraform state show "module.bootstrap.google_storage_bucket.org_terraform_state" | grep name | awk -F '"' '{print $2}' | pbcopy
+   ```
 
-      ```sh
-      terraform init -migrate-state
+1. Uncomment the original `backend` section in `main.tf` and replace the bucket name with the new one you just copied
+1. Complete the state migration:
 
-      # This command will ask you _"Do you want to copy existing state to the new backend?"_ — Make sure to type **YES** here to not re-create everything from scratch again
-      ```
+   ```sh
+   terraform init -migrate-state
 
-   1. Delete your local backend files, you don't need them anymore because our state now lives in the cloud and can be shared amongst team members:
+   # This command will ask you _"Do you want to copy existing state to the new backend?"_ — Make sure to type **YES** here to not re-create everything from scratch again
+   ```
 
-      ```sh
-      rm terraform.tfstate
-      rm terraform.tfstate.backup
-      ```
+1. Delete your local backend files, you don't need them anymore because our state now lives in the cloud and can be shared amongst team members:
 
-## Testing Locally
+   ```sh
+   rm terraform.tfstate
+   rm terraform.tfstate.backup
+   ```
 
-You can test the deployed cloud function manually by using the `./src/proposal-created.fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
+## Updating the Cloud Function
 
-```sh
-./test-deployed-function.sh # or `npm run test-in-prod` if you prefer npm to call this script
-```
+You have two options, using `terraform` or the `gcloud` cli.
+
+1. Via `terraform` by running `npm run deploy:via:tf`
+   - How? The npm task will:
+     - Compile TS to JS
+     - Zip the `./dist` folder into `function-source.zip`
+     - And then call `terraform apply` which re-deploys the function with the new source code from the zip file
+   - Pros
+     - Keeps the terraform state clean
+     - Same command for all changes, regardless of infra or cloud function code
+   - Cons
+     - Less familiar way of deploying cloud functions (if you're used to `gcloud functions deploy`)
+     - Less log output
+     - Slightly slower because `terraform apply` will always fetch the current state from the cloud storage bucket before deploying
+2. Via `gcloud` by running `npm run deploy:via:gcloud`
+   - How? The npm task will:
+     - Generate a temporary `.env.yaml` (because for some reason gcloud does not support normal `.env` files)
+     - Look up the service account used by the cloud function
+     - Call `gcloud functions deploy` with the correct parameters
+   - Pros
+     - Familiar way of deploying cloud functions
+     - More log output making deployment failures slightly faster to debug
+     - Slightly faster because we're skipping the terraform state lookup
+   - Cons
+     - Will lead to inconsistent terraform state (because terraform is tracking the function source code and its version)
+     - Different commands to remember when updating infra components vs cloud function source code
 
 ## Teardown
 
