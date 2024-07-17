@@ -243,6 +243,6 @@ You have two options, using `terraform` or the `gcloud` cli.
 
 ## Teardown
 
-1. `cd infra && terraform destroy`
+1. `terraform -chdir=infra destroy`
    - You might run into permission issues here, especially around deleting the associated billing account resources
    - I didn't have time to figure out the minimum set of permissions required to delete this project so the easiest would be to let an organization owner (i.e. Bogdan) run this with full permissions
