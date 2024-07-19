@@ -163,18 +163,9 @@ In order to create this project from scratch using the [terraform-google-bootstr
    - You will see an overview of all resources to be created. Review them if you like and then type "Yes" to confirm.
    - This command can take up to 10 minutes because it does a lot of work creating and configuring all defined Google Cloud Resources
    - ❌ Given the complexity of setting up an entire Google Cloud Project incl. service accounts, permissions, etc., you might run
-     into errors with some components. If that happens:
+     into deployment errors with some components.
 
-     - First, simply retry `terraform apply`. Sometimes a dependency of a resource has simply not finished creating when terraform already tried to deploy the next one, so waiting a few minutes for things to settle can help.
-     - Second, there is a [known issue when creating a Google Cloud Function with a non-standard service account](https://console.cloud.google.com/iam-admin/serviceaccounts?project=governance-watchdog-73c6). The Google Cloud Terraform Provider seems to ignore the specified service account and instead tries to use the standard Compute Service Account to deploy the function. That default account is disabled by default, though, which leads to an error when deploying the cloud function.
-
-       - You have to re-enable the default compute service account manually:
-
-         ```sh
-         gcloud iam service-accounts enable $(gcloud iam service-accounts list --format="value(email)" | grep compute)
-         ```
-
-       - Now `terraform apply` should be able to deploy the Cloud Function
+     **Often a simple retry of `terraform apply` helps**. Sometimes a dependency of a resource has simply not finished creating when terraform already tried to deploy the next one, so waiting a few minutes for things to settle can help.
 
 6. Set your local `gcloud` project to our freshly created one:
 
