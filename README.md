@@ -89,6 +89,30 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
    - Remove @MissRose_bot after you got the Chat ID
 
+1. A Discord channel with an active webhook to send notifications to
+
+1. A Telegram group to send notifications to
+
+1. A Telegram bot must be in the group to receive the notifications
+   If you're doing this from scratch, here's how to create a bot
+
+   - Open a new chat with @BotFather
+   - Use the `/newbot` command to create a new bot
+   - Copy the API key printed out at the end of the prompt and store it in your `terraform.tfvars`
+
+     ```hcl
+     telegram_bot_token = "<bot-api-key>"
+     ```
+
+   - Get the Chat ID by inviting @MissRose_bot to the group and then using the `/id` command
+   - Add the Chat ID to your `terraform.tfvars`
+
+     ```hcl
+     telegram_chat_id = "<group-chat-id>"
+     ```
+
+   - Remove @MissRose_bot after you got the Chat ID
+
 ## Local Development of Cloud Function Code
 
 - `npm install` (couldn't use `pnpm` because Google Cloud Build failed trying to install pnpm at the time of writing)
