@@ -6,11 +6,18 @@
 # For more information, run:
 #   $ gcloud topic gcloudignore
 #
+.env.example
 .gcloudignore
 .git
 .gitignore
+.trunk
+.vscode
+
 *.md
 *.sh
+
+commitlint.config.mjs
 eslint.config.mjs
+infra
 
 #!include:.gitignore
