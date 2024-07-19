@@ -2,39 +2,39 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import config from "./config.js";
 
 /**
- * Get the Discord webhook URL from GCloud Secret Manager
+ * Get the Telegram Bot Token from GCloud Secret Manager
  *
  * NOTE: This will fail locally because the local function will lack the necessary permissions to access the secret.
  * That's why read the webhook URL from our .env file when running locally. We could probably make it work by having
  * the local function impersonate the service account used by the function in GCP, but that was a rabbit hole I didn't
  * want to go down when a simple .env approach also works for local testing.
  */
-export default async function getDiscordWebhookUrl(): Promise<string> {
+export default async function getTelegramBotToken(): Promise<string> {
   if (process.env.NODE_ENV === "development") {
-    const localWebhookUrl = config.DISCORD_WEBHOOK_URL;
+    const localBotToken = config.TELEGRAM_BOT_TOKEN;
 
-    if (!localWebhookUrl) {
+    if (!localBotToken) {
       throw new Error(
-        "Couldn't find DISCORD_WEBHOOK_URL in environment variables. Please set it in your .env file.",
+        "Couldn't find TELEGRAM_BOT_TOKEN in environment variables. Please set it in your .env file.",
       );
     }
 
-    return localWebhookUrl;
+    return localBotToken;
   }
 
   const secretManager = new SecretManagerServiceClient();
-  const secretFullResourceName = `projects/${config.GCP_PROJECT_ID}/secrets/${config.DISCORD_WEBHOOK_URL_SECRET_ID}/versions/latest`;
+  const secretFullResourceName = `projects/${config.GCP_PROJECT_ID}/secrets/${config.TELEGRAM_BOT_TOKEN_SECRET_ID}/versions/latest`;
   const [version] = await secretManager.accessSecretVersion({
     name: secretFullResourceName,
   });
 
-  const webhookUrl = version.payload?.data?.toString();
+  const botToken = version.payload?.data?.toString();
 
-  if (!webhookUrl) {
+  if (!botToken) {
     throw new Error(
-      "Failed to retrieve discord webhook url from secret manager",
+      "Failed to retrieve telegram bot token from secret manager",
     );
   }
 
-  return webhookUrl;
+  return botToken;
 }

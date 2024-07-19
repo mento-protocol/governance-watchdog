@@ -38,6 +38,18 @@ variable "discord_webhook_url" {
   sensitive = true
 }
 
+# You can look this up by inviting @MissRose_bot to the telegram group and then calling the `/id` command (please remove the bot after you're done)
+variable "telegram_chat_id" {
+  type = string
+}
+
+# You can look this up via:
+#  `gcloud secrets versions access latest --secret telegram-bot-token`
+variable "telegram_bot_token" {
+  type      = string
+  sensitive = true
+}
+
 # You can create an API key via the QuickNode dashboard at https://dashboard.quicknode.com/api-keys
 variable "quicknode_api_key" {
   type      = string
