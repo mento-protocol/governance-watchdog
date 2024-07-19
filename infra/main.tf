@@ -17,7 +17,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "governance-watchdog-terraform-state-8020"
+    bucket = "governance-watchdog-terraform-state-0e83"
   }
 }
 
