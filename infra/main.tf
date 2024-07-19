@@ -48,9 +48,3 @@ module "bootstrap" {
     "secretmanager.googleapis.com",
   ]
 }
-
-# This shouldn't be necessary as it's part of the bootstrap module, but for some reason it doesn't work without it
-resource "google_billing_project_info" "default" {
-  project         = module.bootstrap.seed_project_id
-  billing_account = var.billing_account
-}
