@@ -22,8 +22,9 @@ terraform {
 }
 
 module "bootstrap" {
-  source               = "git::https://github.com/terraform-google-modules/terraform-google-bootstrap.git?ref=177e6be173eb8451155a133f7c6a591215130aab" # commit hash of v8.0.0
-  org_id               = var.org_id
+  source = "git::https://github.com/terraform-google-modules/terraform-google-bootstrap.git?ref=177e6be173eb8451155a133f7c6a591215130aab" # commit hash of v8.0.0
+  org_id = var.org_id
+  # Can be at most 30 characters long, 4 of which are an auto-generated random suffix
   project_id           = var.project_name
   default_region       = var.region
   billing_account      = var.billing_account
