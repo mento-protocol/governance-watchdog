@@ -12,8 +12,8 @@ raw_logs=$(gcloud functions logs read "${function_name}" \
 	--sort-by TIME_UTC)
 
 # Format logs
-echo "${raw_logs}" | jq -r '.[] | if .level == "E" then 
-  "\u001b[31m[\(.level)]\u001b[0m \u001b[33m\(.time_utc)\u001b[0m: \(.log)" 
-else 
-  "[\(.level)] \u001b[33m\(.time_utc)\u001b[0m: \(.log)" 
+echo "${raw_logs}" | jq -r '.[] | if .level == "E" then
+  "\u001b[31m[\(.level)]\u001b[0m \u001b[33m\(.time_utc)\u001b[0m: \(.log)"
+else
+  "[\(.level)] \u001b[33m\(.time_utc)\u001b[0m: \(.log)"
 end'
