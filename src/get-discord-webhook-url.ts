@@ -10,18 +10,6 @@ import config from "./config.js";
  * want to go down when a simple .env approach also works for local testing.
  */
 export default async function getDiscordWebhookUrl(): Promise<string> {
-  if (process.env.NODE_ENV === "development") {
-    const localWebhookUrl = config.DISCORD_WEBHOOK_URL;
-
-    if (!localWebhookUrl) {
-      throw new Error(
-        "Couldn't find DISCORD_WEBHOOK_URL in environment variables. Please set it in your .env file.",
-      );
-    }
-
-    return localWebhookUrl;
-  }
-
   const secretManager = new SecretManagerServiceClient();
   const secretFullResourceName = `projects/${config.GCP_PROJECT_ID}/secrets/${config.DISCORD_WEBHOOK_URL_SECRET_ID}/versions/latest`;
   const [version] = await secretManager.accessSecretVersion({

@@ -10,18 +10,6 @@ import config from "./config.js";
  * want to go down when a simple .env approach also works for local testing.
  */
 export default async function getTelegramBotToken(): Promise<string> {
-  if (process.env.NODE_ENV === "development") {
-    const localBotToken = config.TELEGRAM_BOT_TOKEN;
-
-    if (!localBotToken) {
-      throw new Error(
-        "Couldn't find TELEGRAM_BOT_TOKEN in environment variables. Please set it in your .env file.",
-      );
-    }
-
-    return localBotToken;
-  }
-
   const secretManager = new SecretManagerServiceClient();
   const secretFullResourceName = `projects/${config.GCP_PROJECT_ID}/secrets/${config.TELEGRAM_BOT_TOKEN_SECRET_ID}/versions/latest`;
   const [version] = await secretManager.accessSecretVersion({
