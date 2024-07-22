@@ -11,8 +11,8 @@
     "deploy:via:terraform": "npm run deploy:via:tf",
     "deploy:via:tf": "terraform -chdir=infra apply",
     "gcp-build": "tsc",
-    "generate:dotenv:yaml": "awk '{ gsub(/=/, \": \", $0); print $0 }' .env > .env.yaml",
-    "logs": "gcloud functions logs read watchdog-notifications --gen2 --region europe-west1 --format json | jq",
+    "logs": "./get-logs.sh",
+    "logs:url": "./get-logs-url.sh",
     "prestart": "tsc",
     "start": "NODE_ENV=development functions-framework --target=watchdogNotifier",
     "test": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/resource-manager": "^5.3.0",
     "@google-cloud/secret-manager": "^5.6.0",
     "discord.js": "^14.15.3",
     "env-schema": "^6.0.0",
