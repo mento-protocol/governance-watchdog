@@ -3,13 +3,13 @@ set -e          # fail on any error
 set -o pipefail # ensure non-zero exit codes are propagated in piped commands
 
 # Get the name of the watchdog-notifications function
-function_name=$(gcloud functions list --format="value(name)" | grep '^watchdog-notifications' | sed 's/.*//')
+function_name=$(gcloud functions list --format="value(name)" | grep '^watchdog-notifications')
 
 # Fetch raw logs
-raw_logs=gcloud functions logs read "${function_name}" \
+raw_logs=$(gcloud functions logs read "${function_name}" \
 	--region europe-west1 \
 	--format json \
-	--sort-by TIME_UTC
+	--sort-by TIME_UTC)
 
 # Format logs
 echo "${raw_logs}" | jq -r '.[] | if .level == "E" then 
