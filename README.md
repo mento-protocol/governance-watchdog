@@ -63,9 +63,7 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
    2. `gcloud auth application-default login` sets up Application Default Credentials (ADC) for use by local development environments and applications, such as running our function locally via `npm start`
    3. ADC credentials are specifically intended for [Google Auth Library](https://www.npmjs.com/package/google-auth-library) access, while regular login is for broader gcloud command usage.
 
-1. [OPTIONAL] If you want to read secrets from Secret Manager, you'll need the `Secret Manager Secret Accessor` IAM role assigned to your Google Cloud Account
-   This isn't strictly necessary because locally the function code circumvents Secret Manager and instead loads secrets from env vars, but if you
-   do want to interact with Secret Manager from your local machine you will need this role.
+1. To fetch the secrets used by this function from Secret Manager, you'll need the `Secret Manager Secret Accessor` IAM role assigned to your Google Cloud Account
 
 1. A Discord channel with an active webhook to send notifications to
 
@@ -116,9 +114,7 @@ You can test the deployed cloud function manually by using the `proposal-created
 1. Set your local `gcloud` project to the watchdog project:
 
    ```sh
-   project_id=$(gcloud projects list --filter="name:governance-watchdog" --format="value(projectId)")
-   gcloud config set project $project_id
-   gcloud auth application-default set-quota-project $project_id
+   ./set-project-id.sh
    ```
 
 1. Inside the `./infra` folder, run `terraform init` to install all required terraform providers and sync the terraform state from the project's google cloud storage bucket:
