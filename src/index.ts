@@ -7,12 +7,17 @@ import type {
 import parseTransactionReceipts from "./parse-transaction-receipts";
 import sendDiscordNotification from "./send-discord-notification";
 import sendTelegramNotification from "./send-telegram-notification";
+// import validateRequestOrigin from "./validate-request-origin";
 
 export const watchdogNotifier: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
   try {
+    // TODO: Activate this after we've verified it's working via SortedOracle events
+    // if (process.env.NODE_ENV !== "development") {
+    //   await validateRequestOrigin(req);
+    // }
     const parsedEvents = parseTransactionReceipts(req.body);
 
     for (const parsedEvent of parsedEvents) {
