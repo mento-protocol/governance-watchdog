@@ -69,7 +69,7 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
 1. A Telegram group to send notifications to
 
-1. A Telegram bot must be in the group to receive the notifications
+1. A Telegram bot must be in the group to receive the notifications.
    If you're doing this from scratch, here's how to create a bot
 
    - Open a new chat with @BotFather
