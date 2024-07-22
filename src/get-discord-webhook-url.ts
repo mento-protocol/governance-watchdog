@@ -2,12 +2,8 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import config from "./config.js";
 
 /**
- * Get the Discord webhook URL from GCloud Secret Manager
- *
- * NOTE: This will fail locally because the local function will lack the necessary permissions to access the secret.
- * That's why read the webhook URL from our .env file when running locally. We could probably make it work by having
- * the local function impersonate the service account used by the function in GCP, but that was a rabbit hole I didn't
- * want to go down when a simple .env approach also works for local testing.
+ * Get the Discord webhook URL from GCloud Secret Manager. When ran locally, it assumes that the user is
+ * authenticated in the gcloud cli and has the necessary permissions to access the secret.
  */
 export default async function getDiscordWebhookUrl(): Promise<string> {
   const secretManager = new SecretManagerServiceClient();
