@@ -1,7 +1,5 @@
 # 🐕 Governance Watchdog
 
-- TODO: Fix local failure of secret manager
-
 <!-- markdown-link-check-disable -->
 
 A monorepo for our governance watchdog, a system that monitors Mento Governance events on-chain and sends notifications about them to Discord and Telegram. Mento Devs can view the [full project spec in our Notion.](https://www.notion.so/mentolabs/Governance-Watchdog-d168a8110a53430a90e2f5ab65f103f5?pvs=4)
@@ -23,19 +21,13 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
 ## Requirements
 
-1. Install Terraform
+1. Install the `gcloud` CLI
 
    ```sh
-   # On macOS
-   brew install terraform
+   # For macOS
+   brew install google-cloud-sdk
 
-   # For other systems, see https://developer.hashicorp.com/terraform/install
-   ```
-
-1. Authenticate with Google Cloud in your local shell
-
-   ```sh
-   gcloud auth login
+   # For other systems, see https://cloud.google.com/sdk/docs/install
    ```
 
 1. Install trunk (one linter to rule them all)
@@ -49,17 +41,38 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
    Optionally, you can also install the [Trunk VS Code Extension](https://marketplace.visualstudio.com/items?itemName=Trunk.io)
 
-1. Create a local `.env` file and fill in the required values
+1. Install Terraform
 
    ```sh
-   cp .env.example .env
+   # On macOS
+   brew tap hashicorp/tap
+   brew install hashicorp/tap/terraform
+
+   # For other systems, see https://developer.hashicorp.com/terraform/install
    ```
+
+1. Authenticate with Google Cloud default credentials in your local shell
+
+   ```sh
+   gcloud auth application-default login
+   ```
+
+   The key differences between `gcloud auth login` and `gcloud auth application-default login` are:
+
+   1. `gcloud auth login` authenticates you for general gcloud CLI use and interactive scenarios.
+   2. `gcloud auth application-default login` sets up Application Default Credentials (ADC) for use by local development environments and applications, such as running our function locally via `npm start`
+   3. ADC credentials are specifically intended for [Google Auth Library](https://www.npmjs.com/package/google-auth-library) access, while regular login is for broader gcloud command usage.
+
+1. [OPTIONAL] If you want to read secrets from Secret Manager, you'll need the `Secret Manager Secret Accessor` IAM role assigned to your Google Cloud Account
+   This isn't strictly necessary because locally the function code circumvents Secret Manager and instead loads secrets from env vars, but if you
+   do want to interact with Secret Manager from your local machine you will need this role.
 
 ## Local Development of Cloud Function Code
 
 - `npm install` (couldn't use `pnpm` because Google Cloud Build failed trying to install pnpm at the time of writing)
+- `cp .env.example .env` and fill in the required values (there are comments in the `.env.example` explaining how to get them)
 - `npm start` to start a local cloud function
-- `npm test` to call the local cloud function with a mocked payload
+- `npm test` to call the local cloud function with a mocked payload, this will send a real Discord message into channel belonging to the webhook in `.env`:
 
   ```sh
   curl -H "Content-Type: application/json" -d @src/proposal-created.fixture.json localhost:8080
@@ -67,7 +80,7 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
 ## Testing the Deployed Cloud Function
 
-You can test the deployed cloud function manually by using the `./src/proposal-created.fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
+You can test the deployed cloud function manually by using the `proposal-created.fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
 
 ```sh
 ./test-deployed-function.sh
@@ -79,9 +92,7 @@ You can test the deployed cloud function manually by using the `./src/proposal-c
 1. Set your local `gcloud` project to the watchdog project:
 
    ```sh
-   # If that `awk` magic fails, just look up the project ID manually via `gcloud projects list`
-   project_id=$(terraform state show "module.bootstrap.module.seed_project.module.project-factory.google_project.main" | grep 'project_id' | awk -F '"' '{print $2}')
-
+   project_id=$(gcloud projects list --filter="name:governance-watchdog" --format="value(projectId)")
    gcloud config set project $project_id
    gcloud auth application-default set-quota-project $project_id
    ```
@@ -103,19 +114,27 @@ You can test the deployed cloud function manually by using the `./src/proposal-c
 1. Add the following values to your `terraform.tfvars`, you can look up all values in the Google Cloud console (or ask another dev to share his local `terraform.tfvars` with you)
 
    ```sh
-   billing_account      = "<our-billing-account-id>"
-   group_billing_admins = "<our-billing-admins-group>"
-   group_org_admins     = "<our-org-admins-group>"
+   # Get it via `gcloud organizations list`
    org_id               = "<our-org-id>"
+
+   # Get it via `gcloud billing accounts list` (pick the GmbH account)
+   billing_account      = "<our-billing-account-id>"
+
+   # Get it via `gcloud organizations get-iam-policy <our-org-id> --format=json | jq -r '.bindings[] | select(.role | startswith("roles/resourcemanager.organizationAdmin"))  | .members[] | select(startswith("group:")) | sub("^group:"; "")'`
+   group_org_admins     = "<our-org-admins-group>"
+
+   # Get it via `gcloud organizations get-iam-policy <our-org-id> --format=json | jq -r '.bindings[] | select(.role | startswith("roles/billing.admin"))  | .members[] | select(startswith("group:")) | sub("^group:"; "")'`
+   group_billing_admins = "<our-billing-admins-group>"
    ```
 
 1. Add the Discord Webhook URL from Google Cloud Secret Manager into your local `terraform.tfvars`:
 
    ```sh
+   # You will need the "Secret Manager Secret Accessor" IAM role for this command to succeed
    echo "discord_webhook_url = \"$(gcloud secrets versions access latest --secret discord-webhook-url)\"" >> terraform.tfvars
    ```
 
-1. [Create a QuickNode API key](https://dashboard.quicknode.com/api-keys) and add it to your local `terraform.tfvars`:
+1. [Get our QuickNode API key from the QuickNode dashboard](https://dashboard.quicknode.com/api-keys) and add it to your local `terraform.tfvars`:
 
    ```sh
    # ./infra/terraform.tfvars
@@ -123,7 +142,7 @@ You can test the deployed cloud function manually by using the `./src/proposal-c
    quicknode_api_key   = "<your-quicknode-api-key>"
    ```
 
-   - This is necessary for Terraform to be able to create QuickAlerts when deploying this project
+   This is necessary for Terraform to be able to create & destroy QuickAlerts as part of `terraform apply`
 
 ## First Time Infra Deployment via Terraform
 
@@ -134,7 +153,6 @@ In order to create this project from scratch using the [terraform-google-bootstr
 - `roles/resourcemanager.organizationAdmin` on the top-level GCP Organization
 - `roles/orgpolicy.policyAdmin` on the top-level GCP Organization
 - `roles/billing.admin` on the billing account connected to the project
-- Your local gcloud account running `terraform apply` should be a member of the `group_org_admins` variable provided in `./main.tf`
 
 ### Deployment from scratch
 
@@ -152,29 +170,21 @@ In order to create this project from scratch using the [terraform-google-bootstr
 3. Outcomment the `backend` section in `main.tf` (because this bucket doesn't exist yet, it will be created by the first `terraform apply` run)
 
    ```hcl
-   backend "gcs" {
-     bucket = "governance-watchdog-terraform-state-<some-randum-suffix>"
-   }
+   # backend "gcs" {
+   #   bucket = "governance-watchdog-terraform-state-<random-suffix>"
+   # }
    ```
 
 4. Run `terraform init` to install the required providers and init a temporary local backend in a `terraform.tfstate` file
+
 5. **Deploy the entire project via `terraform apply`**
 
    - You will see an overview of all resources to be created. Review them if you like and then type "Yes" to confirm.
    - This command can take up to 10 minutes because it does a lot of work creating and configuring all defined Google Cloud Resources
    - ❌ Given the complexity of setting up an entire Google Cloud Project incl. service accounts, permissions, etc., you might run
-     into errors with some components. If that happens:
+     into deployment errors with some components.
 
-     - First, simply retry `terraform apply`. Sometimes a dependency of a resource has simply not finished creating when terraform already tried to deploy the next one, so waiting a few minutes for things to settle can help.
-     - Second, there is a [known issue when creating a Google Cloud Function with a non-standard service account](https://console.cloud.google.com/iam-admin/serviceaccounts?project=governance-watchdog-73c6). The Google Cloud Terraform Provider seems to ignore the specified service account and instead tries to use the standard Compute Service Account to deploy the function. That default account is disabled by default, though, which leads to an error when deploying the cloud function.
-
-       - You have to re-enable the default compute service account manually:
-
-         ```sh
-         gcloud iam service-accounts enable $(gcloud iam service-accounts list --format="value(email)" | grep compute)
-         ```
-
-       - Now `terraform apply` should be able to deploy the Cloud Function
+     **Often a simple retry of `terraform apply` helps**. Sometimes a dependency of a resource has simply not finished creating when terraform already tried to deploy the next one, so waiting a few minutes for things to settle can help.
 
 6. Set your local `gcloud` project to our freshly created one:
 
@@ -184,6 +194,21 @@ In order to create this project from scratch using the [terraform-google-bootstr
 
    gcloud config set project $project_id
    gcloud auth application-default set-quota-project $project_id
+   ```
+
+7. Check that everything worked as expected
+
+   ```sh
+   # 1. Call the deployed function via:
+   npm run test-in-prod # or call the script directly via ./test-deployed-function.sh
+
+   # 2. Monitor the configured Discord channel for a message to appear
+   open https://discord.com/channels/966739027782955068/1262714272476037212
+
+   # 3. Check the function logs via:
+   npm run logs # prints logs into your local terminal (with a few seconds of latency)
+   # OR
+   npm run logs:url # prints a URL to the cloud console logs in the browser
    ```
 
 ### Migrate Terraform State to Google Cloud
@@ -197,12 +222,26 @@ For all team members to be able to manage the Google Cloud infrastructure, you n
    ```
 
 1. Uncomment the original `backend` section in `main.tf` and replace the bucket name with the new one you just copied
+
+   ```hcl
+   backend "gcs" {
+     bucket = "governance-watchdog-terraform-state-<random-suffix>"
+   }
+   ```
+
 1. Complete the state migration:
 
    ```sh
    terraform init -migrate-state
 
    # This command will ask you _"Do you want to copy existing state to the new backend?"_ — Make sure to type **YES** here to not re-create everything from scratch again
+   ```
+
+1. Commit & push your changes
+
+   ```sh
+   git commit -m "build: updated terraform remote backend to new google cloud storage bucket"
+   git push
    ```
 
 1. Delete your local backend files, you don't need them anymore because our state now lives in the cloud and can be shared amongst team members:
@@ -214,7 +253,7 @@ For all team members to be able to manage the Google Cloud infrastructure, you n
 
 ## Updating the Cloud Function
 
-You have two options, using `terraform` or the `gcloud` cli.
+You have two options, using `terraform` or the `gcloud` cli. Both are perfectly fine to use.
 
 1. Via `terraform` by running `npm run deploy:via:tf`
    - How? The npm task will:
@@ -243,6 +282,20 @@ You have two options, using `terraform` or the `gcloud` cli.
 
 ## Teardown
 
-1. `terraform -chdir=infra destroy`
+Before destroying the project, you'll need to migrate the terraform state from the cloud bucket backend onto your local machine.
+Because `terraform destroy` will also destroy the bucket that the terraform state is stored in so the moment it gets destroyed,
+the terraform state will be gone and the destroy command will fail.
+
+1. Outcomment the `backend` section in `main.tf` again
+
+   ```hcl
+   # backend "gcs" {
+   #   bucket = "governance-watchdog-terraform-state-<random-suffix>"
+   # }
+   ```
+
+1. Run `terraform init -migrate-state` to move the state into a local `terraform.tfstate` file
+
+1. Now run `terraform destroy` to delete all cloud resources associated with this project
    - You might run into permission issues here, especially around deleting the associated billing account resources
    - I didn't have time to figure out the minimum set of permissions required to delete this project so the easiest would be to let an organization owner (i.e. Bogdan) run this with full permissions

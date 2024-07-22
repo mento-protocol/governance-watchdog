@@ -8,6 +8,9 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
     runtime     = "nodejs20"
     entry_point = "watchdogNotifier"
 
+    # Use the service account created by terraform for the project (not the default Compute Engine service account)
+    service_account = "projects/${module.bootstrap.seed_project_id}/serviceAccounts/${module.bootstrap.terraform_sa_email}"
+
     source {
       storage_source {
         bucket = google_storage_bucket.watchdog_notifications_function.name
@@ -20,7 +23,7 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
     available_memory = "256M"
     timeout_seconds  = 60
 
-    # Use the default service account for the project (not the default Compute Engine service account)
+    # Use the service account created by terraform for the project (not the default Compute Engine service account)
     service_account_email = module.bootstrap.terraform_sa_email
 
     # 🔒 Security Note: Checkov recommends to only allow this function to be called from a cloud load balancer.
@@ -38,11 +41,6 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
       LOG_EXECUTION_ID = true
     }
   }
-
-  depends_on = [
-    google_storage_bucket.watchdog_notifications_function,
-    google_storage_bucket_object.source_code,
-  ]
 }
 
 # Allows the QuickAlerts service (and everyone else...) to call the cloud function

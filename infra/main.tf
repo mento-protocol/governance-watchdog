@@ -17,13 +17,14 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "governance-watchdog-terraform-state-8020"
+    bucket = "governance-watchdog-terraform-state-0e83"
   }
 }
 
 module "bootstrap" {
-  source               = "git::https://github.com/terraform-google-modules/terraform-google-bootstrap.git?ref=177e6be173eb8451155a133f7c6a591215130aab" # commit hash of v8.0.0
-  org_id               = var.org_id
+  source = "git::https://github.com/terraform-google-modules/terraform-google-bootstrap.git?ref=177e6be173eb8451155a133f7c6a591215130aab" # commit hash of v8.0.0
+  org_id = var.org_id
+  # Can be at most 30 characters long, 4 of which are an auto-generated random suffix
   project_id           = var.project_name
   default_region       = var.region
   billing_account      = var.billing_account
@@ -46,10 +47,4 @@ module "bootstrap" {
     "run.googleapis.com",
     "secretmanager.googleapis.com",
   ]
-}
-
-# This shouldn't be necessary as it's part of the bootstrap module, but for some reason it doesn't work without it
-resource "google_billing_project_info" "default" {
-  project         = module.bootstrap.seed_project_id
-  billing_account = var.billing_account
 }
