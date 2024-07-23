@@ -16,8 +16,17 @@ export const watchdogNotifier: HttpFunction = async (
     const parsedEvents = parseTransactionReceipts(req.body);
 
     for (const parsedEvent of parsedEvents) {
-      await sendDiscordNotification(parsedEvent.event, parsedEvent.txHash);
-      await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
+      switch (parsedEvent.event.eventName) {
+        case "ProposalCreated":
+          await sendDiscordNotification(parsedEvent.event, parsedEvent.txHash);
+          await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
+          break;
+        case "MedianUpdated":
+          console.info("[HealthCheck]: OK");
+          break;
+        default:
+          console.warn("Unknown event type:", parsedEvent.event);
+      }
     }
 
     res.status(200).send("Event successfully processed");

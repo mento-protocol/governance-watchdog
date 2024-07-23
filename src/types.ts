@@ -41,3 +41,11 @@ export interface ProposalCreatedEvent {
     version: number;
   };
 }
+
+export interface HealthCheckEvent {
+  eventName: "MedianUpdated";
+  args: {
+    token: `0x${string}`;
+    value: bigint;
+  };
+}

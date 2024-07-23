@@ -3,31 +3,36 @@ import { decodeEventLog } from "viem";
 
 // Internal
 import GovernorABI from "./governor-abi.js";
-import { ProposalCreatedEvent } from "./types.js";
+import { HealthCheckEvent, ProposalCreatedEvent } from "./types.js";
 import hasLogs from "./utils/has-logs.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
 // For debugging with SortedOracles:
-// import SortedOraclesABI from "./sorted-oracles-abi.js";
+import SortedOraclesABI from "./sorted-oracles-abi.js";
+import isHealthCheckEvent from "./utils/is-health-check-event.js";
 
 /**
  * Parse request body containing raw transaction receipts
  */
 export default function parseTransactionReceipts(
   matchedTransactionReceipts: unknown,
-): { event: ProposalCreatedEvent; txHash: string }[] {
+): { event: ProposalCreatedEvent | HealthCheckEvent; txHash: string }[] {
   const result = [];
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
-      `Request body is not an array of transaction receipts but was: ${JSON.stringify(matchedTransactionReceipts)}`,
+      `Request body is not an array of transaction receipts but was: ${JSON.stringify(
+        matchedTransactionReceipts,
+      )}`,
     );
   }
 
   for (const receipt of matchedTransactionReceipts) {
     if (!isTransactionReceipt(receipt)) {
       throw new Error(
-        `'receipt' is not of type 'TransactionReceipt': ${JSON.stringify(receipt)}`,
+        `'receipt' is not of type 'TransactionReceipt': ${JSON.stringify(
+          receipt,
+        )}`,
       );
     }
 
@@ -42,24 +47,39 @@ export default function parseTransactionReceipts(
         throw new Error("No topics found in log");
       }
 
-      const event = decodeEventLog({
-        // For debugging with SortedOracles:
-        // abi: SortedOraclesABI,
-        abi: GovernorABI,
-        data: log.data as `0x${string}`,
-        topics: log.topics as [
-          signature: `0x${string}`,
-          ...args: `0x${string}`[],
-        ],
-      });
+      try {
+        const event = decodeEventLog({
+          abi: GovernorABI,
+          data: log.data as `0x${string}`,
+          topics: log.topics as [
+            signature: `0x${string}`,
+            ...args: `0x${string}`[],
+          ],
+        });
 
-      if (!isProposalCreatedEvent(event)) {
-        throw new Error(
-          `Event is not a ProposalCreatedEvent: ${JSON.stringify(event)}`,
-        );
+        if (isProposalCreatedEvent(event)) {
+          result.push({ event, txHash: log.transactionHash });
+        }
+      } catch (_) {
+        // TODO: think of how/if we should handle this error
       }
 
-      result.push({ event, txHash: log.transactionHash });
+      try {
+        const event = decodeEventLog({
+          abi: SortedOraclesABI,
+          data: log.data as `0x${string}`,
+          topics: log.topics as [
+            signature: `0x${string}`,
+            ...args: `0x${string}`[],
+          ],
+        });
+
+        if (isHealthCheckEvent(event)) {
+          result.push({ event, txHash: log.transactionHash });
+        }
+      } catch (_) {
+        // TODO: think of how/if we should handle this error
+      }
     }
   }
 
