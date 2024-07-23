@@ -1,9 +1,12 @@
 import type { Request } from "@google-cloud/functions-framework";
 import crypto from "crypto";
-import getQuicknodeSecurityToken from "./get-quicknode-security-token";
+import config from "./config";
+import getSecret from "./get-secret";
 
 export default async function validateRequestOrigin(req: Request) {
-  const quicknodeSecurityToken = await getQuicknodeSecurityToken();
+  const quicknodeSecurityToken = await getSecret(
+    config.QUICKNODE_SECURITY_TOKEN_SECRET_ID,
+  );
   const givenSignature = req.headers["x-qn-signature"];
   const nonce = req.headers["x-qn-nonce"];
   const contentHash = req.headers["x-qn-content-hash"];
