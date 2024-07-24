@@ -31,6 +31,13 @@ variable "group_billing_admins" {
   type = string
 }
 
+# You can look this up via:
+#  `gcloud secrets list`
+variable "discord_webhook_url_secret_id" {
+  type    = string
+  default = "discord-webhook-url"
+}
+
 # You can look this up either on the Discord Channel settings, or fetch it from Secret Manager via:
 #  `gcloud secrets versions access latest --secret discord-webhook-url`
 variable "discord_webhook_url" {
@@ -41,6 +48,13 @@ variable "discord_webhook_url" {
 # You can look this up by inviting @MissRose_bot to the telegram group and then calling the `/id` command (please remove the bot after you're done)
 variable "telegram_chat_id" {
   type = string
+}
+
+# You can look this up via:
+#  `gcloud secrets list`
+variable "telegram_bot_token_secret_id" {
+  type    = string
+  default = "telegram-bot-token"
 }
 
 # You can look this up via:

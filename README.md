@@ -92,7 +92,6 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 ## Local Development of Cloud Function Code
 
 - `npm install` (couldn't use `pnpm` because Google Cloud Build failed trying to install pnpm at the time of writing)
-- `cp .env.example .env` and fill in the required values (there are comments in the `.env.example` explaining how to get them)
 - `npm start` to start a local cloud function
 - `npm test` to call the local cloud function with a mocked payload, this will send a real Discord message into channel belonging to the webhook in `.env`:
 
@@ -165,6 +164,8 @@ You can test the deployed cloud function manually by using the `proposal-created
    This is necessary for Terraform to be able to create & destroy QuickAlerts as part of `terraform apply`
 
 ## First Time Infra Deployment via Terraform
+
+1. Auto-generate a local `.env` file by running `npm run generate:env`
 
 ### Google Cloud Permission Requirements
 

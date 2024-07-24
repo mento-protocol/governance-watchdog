@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/archive"
       version = ">= 2.4.2"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = ">= 2.5.1"
+    }
     quicknode = {
       source  = "jmtx1020/quicknode"
       version = "0.0.2"
