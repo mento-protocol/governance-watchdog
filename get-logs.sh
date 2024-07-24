@@ -9,6 +9,7 @@ function_name=$(gcloud functions list --format="value(name)" | grep '^watchdog-n
 raw_logs=$(gcloud functions logs read "${function_name}" \
 	--region europe-west1 \
 	--format json \
+	--limit 50 \
 	--sort-by TIME_UTC)
 
 # Format logs
