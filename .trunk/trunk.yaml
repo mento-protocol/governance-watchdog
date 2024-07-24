@@ -36,7 +36,7 @@ lint:
     - pre-commit-hooks@4.6.0
     - sort-package-json@2.10.0
     - terrascan@1.19.1
-    - checkov@3.2.198
+    - checkov@3.2.200
     - git-diff-check
     - markdownlint@0.41.0
     - osv-scanner@1.8.2
