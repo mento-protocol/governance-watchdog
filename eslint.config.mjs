@@ -6,7 +6,10 @@ export default tseslint.config(
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
-    ignores: ["commitlint.config.mjs", "eslint.config.mjs"],
+    files: ["**/*.mjs"],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
+  {
     languageOptions: {
       parserOptions: {
         project: true,
