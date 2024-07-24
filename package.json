@@ -16,8 +16,9 @@
     "logs:url": "./get-logs-url.sh",
     "prestart": "tsc",
     "start": "NODE_ENV=development functions-framework --target=watchdogNotifier",
-    "test": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
-    "test-in-prod": "./test-deployed-function.sh"
+    "test": "npm run test:local",
+    "test:local": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
+    "test:prod": "./test-deployed-function.sh"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.0",
