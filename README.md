@@ -17,6 +17,8 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
   - [Google Cloud Permission Requirements](#google-cloud-permission-requirements)
   - [Deployment from scratch](#deployment-from-scratch)
   - [Migrate Terraform State to Google Cloud](#migrate-terraform-state-to-google-cloud)
+- [Debugging Problems](#debugging-problems)
+  - [View Logs](#view-logs)
 - [Teardown](#teardown)
 
 ## Requirements for local development
@@ -314,6 +316,15 @@ For all team members to be able to manage the Google Cloud infrastructure, you n
    rm terraform.tfstate
    rm terraform.tfstate.backup
    ```
+
+## Debugging Problems
+
+### View Logs
+
+For most problems, you'll likely want to check the cloud function logs first.
+
+- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access
+- `npm run logs:url` will print the URL to the function logs in the Google Cloud Console for full access
 
 ## Teardown
 
