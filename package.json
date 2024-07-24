@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
-  "author": "Philip Paetz <philip.paetz@mentolabs.xyz>",
+  "author": "Mento Labs <eng@mentolabs.xyz>",
   "main": "dist/index.js",
   "scripts": {
     "deploy": "npm run deploy:via:tf",
