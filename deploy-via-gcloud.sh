@@ -2,13 +2,15 @@
 set -e          # fail on any error
 set -o pipefail # ensure non-zero exit codes are propagated in piped commands
 
-entry_point="watchdogNotifier"
-function_name="watchdog-notifications"
 region="europe-west1"
 
 printf "Looking up function name..."
 function_name=$(gcloud functions list --format="value(name)" | grep '^watchdog-notifications')
 printf ' \033[1m%s\033[0m\n' "${function_name}"
+
+printf "Looking up entry point..."
+entry_point=$(gcloud functions describe "${function_name}" --region="${region}" --format json | jq .buildConfig.entryPoint)
+printf ' \033[1m%s\033[0m\n' "${entry_point}"
 
 printf "Looking up project ID..."
 project_name="governance-watchdog"
