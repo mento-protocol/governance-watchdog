@@ -66,7 +66,7 @@ export default function parseTransactionReceipts(
             txHash: log.transactionHash,
           });
         }
-      } catch (_) {}
+      } catch {}
 
       try {
         const event = decodeEventLog({
@@ -85,7 +85,7 @@ export default function parseTransactionReceipts(
             txHash: log.transactionHash,
           });
         }
-      } catch (_) {}
+      } catch {}
     }
   }
 

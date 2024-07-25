@@ -23,7 +23,7 @@ export const watchdogNotifier: HttpFunction = async (
           break;
         case "MedianUpdated":
           // Acts a health check/heartbeat for the service, as it's a frequently emitted event
-          console.info(`[HealthCheck]: Block ${parsedEvent.block}`);
+          console.info("[HealthCheck]: Block " + parsedEvent.block);
           break;
         default:
           console.warn("Unknown event type:", parsedEvent.event);
