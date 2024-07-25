@@ -22,7 +22,7 @@ export const watchdogNotifier: HttpFunction = async (
           await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
           break;
         case "MedianUpdated":
-          console.info("[HealthCheck]: OK");
+          console.info(`[HealthCheck]: Block ${parsedEvent.block}`);
           break;
         default:
           console.warn("Unknown event type:", parsedEvent.event);

@@ -17,7 +17,11 @@ import isHealthCheckEvent from "./utils/is-health-check-event.js";
  */
 export default function parseTransactionReceipts(
   matchedTransactionReceipts: unknown,
-): { event: ProposalCreatedEvent | HealthCheckEvent; txHash: string }[] {
+): {
+  block: number;
+  event: ProposalCreatedEvent | HealthCheckEvent;
+  txHash: string;
+}[] {
   const result = [];
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
@@ -58,7 +62,11 @@ export default function parseTransactionReceipts(
         });
 
         if (isProposalCreatedEvent(event)) {
-          result.push({ event, txHash: log.transactionHash });
+          result.push({
+            block: Number(receipt.blockNumber),
+            event,
+            txHash: log.transactionHash,
+          });
         }
       } catch (_) {
         // TODO: think of how/if we should handle this error
@@ -75,7 +83,11 @@ export default function parseTransactionReceipts(
         });
 
         if (isHealthCheckEvent(event)) {
-          result.push({ event, txHash: log.transactionHash });
+          result.push({
+            block: Number(receipt.blockNumber),
+            event,
+            txHash: log.transactionHash,
+          });
         }
       } catch (_) {
         // TODO: think of how/if we should handle this error
