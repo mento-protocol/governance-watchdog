@@ -66,6 +66,7 @@ export default function parseTransactionReceipts(
             txHash: log.transactionHash,
           });
         }
+        // eslint-disable-next-line no-empty
       } catch {}
 
       try {
@@ -85,6 +86,7 @@ export default function parseTransactionReceipts(
             txHash: log.transactionHash,
           });
         }
+        // eslint-disable-next-line no-empty
       } catch {}
     }
   }
