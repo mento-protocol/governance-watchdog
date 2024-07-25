@@ -22,6 +22,7 @@ export const watchdogNotifier: HttpFunction = async (
           await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
           break;
         case "MedianUpdated":
+          // Acts a health check/heartbeat for the service, as it's a frequently emitted event
           console.info(`[HealthCheck]: Block ${parsedEvent.block}`);
           break;
         default:
