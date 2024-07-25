@@ -5,12 +5,10 @@ import { decodeEventLog } from "viem";
 import GovernorABI from "./governor-abi.js";
 import { HealthCheckEvent, ProposalCreatedEvent } from "./types.js";
 import hasLogs from "./utils/has-logs.js";
+import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
-
-// For debugging with SortedOracles:
 import SortedOraclesABI from "./sorted-oracles-abi.js";
-import isHealthCheckEvent from "./utils/is-health-check-event.js";
 
 /**
  * Parse request body containing raw transaction receipts
