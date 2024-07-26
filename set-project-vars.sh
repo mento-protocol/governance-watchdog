@@ -66,7 +66,7 @@ if [[ $* == *"--no-cache"* ]]; then
 elif [[ ! -f ${cache_file} ]]; then
 	cache_vars
 else
-	# shellcheck source=.project_vars_cache
+	# shellcheck disable=SC1090
 	source "${cache_file}"
 	printf "Using cached values:\n"
 	printf " - Project ID: \033[1m%s\033[0m\n" "${project_id}"
