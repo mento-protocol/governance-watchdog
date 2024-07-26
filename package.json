@@ -17,7 +17,8 @@
     "prestart": "npm run build",
     "start": "NODE_ENV=development functions-framework --target=watchdogNotifier",
     "test": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
-    "test-in-prod": "./test-deployed-function.sh"
+    "test-in-prod": "./test-deployed-function.sh",
+    "test:healthcheck": "curl -H \"Content-Type: application/json\" -d @src/health-check.fixture.json localhost:8080"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.0",
