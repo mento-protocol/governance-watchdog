@@ -27,6 +27,7 @@ export interface LogsEntity {
 }
 
 export enum EventType {
+  Unknown = "Unknown",
   ProposalCreated = "ProposalCreated",
   MedianUpdated = "MedianUpdated",
 }

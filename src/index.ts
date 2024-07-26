@@ -1,3 +1,5 @@
+import assert from "assert/strict";
+
 // Types
 import type {
   HttpFunction,
@@ -27,7 +29,7 @@ export const watchdogNotifier: HttpFunction = async (
           console.info("[HealthCheck]: Block", parsedEvent.block);
           break;
         default:
-          throw new Error("Unknown event type");
+          assert(false, `Unknown event type from payload: ${req.body}`);
       }
     }
 
