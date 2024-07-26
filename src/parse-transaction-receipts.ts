@@ -55,7 +55,8 @@ export default function parseTransactionReceipts(
 
       switch (eventType) {
         case EventType.Unknown:
-          // It can happen that a single transaction fired multiple events, some of which we are not interested in
+          // It can happen that a single transaction fires multiple events,
+          // some of which we are not interested in
           continue;
         case EventType.ProposalCreated: {
           const event = decodeEventLog({
