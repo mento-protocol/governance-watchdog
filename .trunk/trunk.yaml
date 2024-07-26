@@ -22,25 +22,24 @@ lint:
     - trivy
     - markdown-table-prettify
   enabled:
-    - oxipng@9.1.2
-    - pre-commit-hooks@4.6.0
-    - shellcheck@0.10.0
-    - shfmt@3.6.0
     - actionlint@1.7.1
+    - checkov@3.2.198
     - dotenv-linter@3.3.0
-    - terraform@1.1.0
     - dustilock@1.2.0
     - eslint@9.7.0
+    - git-diff-check
     - gitleaks@8.18.4
     - markdown-link-check@3.12.2
-    - pre-commit-hooks@4.6.0
-    - sort-package-json@2.10.0
-    - terrascan@1.19.1
-    - checkov@3.2.200
-    - git-diff-check
     - markdownlint@0.41.0
     - osv-scanner@1.8.2
+    - oxipng@9.1.2
+    - pre-commit-hooks@4.6.0
     - prettier@3.3.3
+    - shellcheck@0.10.0
+    - shfmt@3.6.0
+    - sort-package-json@2.10.0
+    - terraform@1.1.0
+    - terrascan@1.19.1
     - tflint@0.52.0
     - trufflehog@3.80.1
     - yamllint@1.35.1

@@ -7,15 +7,16 @@
   "main": "dist/index.js",
   "scripts": {
     "cache:clear": "./set-project-vars.sh --no-cache",
+    "build": "rimraf dist && tsc",
     "deploy": "npm run deploy:via:tf",
     "deploy:via:gcloud": "./deploy-via-gcloud.sh",
     "deploy:via:terraform": "npm run deploy:via:tf",
     "deploy:via:tf": "terraform -chdir=infra apply",
-    "gcp-build": "tsc",
     "generate:env": "terraform -chdir=infra apply -target=local_file.env_file",
+    "gcp-build": "npm run build",
     "logs": "./get-logs.sh",
     "logs:url": "./get-logs-url.sh",
-    "prestart": "tsc",
+    "prestart": "npm run build",
     "start": "NODE_ENV=development functions-framework --target=watchdogNotifier",
     "test": "npm run test:local",
     "test:local": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
@@ -35,6 +36,7 @@
     "@trunkio/launcher": "^1.3.1",
     "@types/eslint__js": "^8.42.3",
     "eslint": "^9.7.0",
+    "rimraf": "^6.0.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0-alpha.51"
   }
