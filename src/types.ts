@@ -26,8 +26,13 @@ export interface LogsEntity {
   transactionIndex: string;
 }
 
+export enum EventType {
+  ProposalCreated = "ProposalCreated",
+  MedianUpdated = "MedianUpdated",
+}
+
 export interface ProposalCreatedEvent {
-  eventName: "ProposalCreated";
+  eventName: EventType.ProposalCreated;
   args: {
     calldatas: readonly `0x${string}`[];
     description: string;
@@ -43,7 +48,7 @@ export interface ProposalCreatedEvent {
 }
 
 export interface HealthCheckEvent {
-  eventName: "MedianUpdated";
+  eventName: EventType.MedianUpdated;
   block: number;
   args: {
     token: `0x${string}`;

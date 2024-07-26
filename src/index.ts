@@ -4,6 +4,7 @@ import type {
   Request,
   Response,
 } from "@google-cloud/functions-framework";
+import { EventType } from "./types.js";
 import parseTransactionReceipts from "./parse-transaction-receipts";
 import sendDiscordNotification from "./send-discord-notification";
 import sendTelegramNotification from "./send-telegram-notification";
@@ -17,16 +18,16 @@ export const watchdogNotifier: HttpFunction = async (
 
     for (const parsedEvent of parsedEvents) {
       switch (parsedEvent.event.eventName) {
-        case "ProposalCreated":
+        case EventType.ProposalCreated:
           await sendDiscordNotification(parsedEvent.event, parsedEvent.txHash);
           await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
           break;
-        case "MedianUpdated":
+        case EventType.MedianUpdated:
           // Acts a health check/heartbeat for the service, as it's a frequently emitted event
           console.info("[HealthCheck]: Block", parsedEvent.block);
           break;
         default:
-          throw new Error("Unknown event type", parsedEvent.event);
+          throw new Error("Unknown event type");
       }
     }
 
