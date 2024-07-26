@@ -10,6 +10,7 @@ export default tseslint.config(
     extends: [tseslint.configs.disableTypeChecked],
   },
   {
+    ignores: ["**/*.mjs"],
     languageOptions: {
       parserOptions: {
         project: true,
