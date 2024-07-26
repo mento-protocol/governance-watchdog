@@ -21,6 +21,7 @@
     "test": "npm run test:local",
     "test:local": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
     "test:prod": "./test-deployed-function.sh",
+    "test:healthcheck": "curl -H \"Content-Type: application/json\" -d @src/health-check.fixture.json localhost:8080",
     "todo": "git ls-files -c --exclude-standard | grep -v \"package.json\" | xargs grep -n -i --color \"TODO:\\|FIXME:\""
   },
   "dependencies": {
