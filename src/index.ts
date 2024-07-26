@@ -26,7 +26,7 @@ export const watchdogNotifier: HttpFunction = async (
           console.info("[HealthCheck]: Block", parsedEvent.block);
           break;
         default:
-          console.warn("Unknown event type:", parsedEvent.event);
+          throw new Error("Unknown event type", parsedEvent.event);
       }
     }
 
