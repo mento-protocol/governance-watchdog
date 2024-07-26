@@ -29,7 +29,10 @@ export const watchdogNotifier: HttpFunction = async (
           console.info("[HealthCheck]: Block", parsedEvent.block);
           break;
         default:
-          assert(false, `Unknown event type from payload: ${req.body}`);
+          assert(
+            false,
+            `Unknown event type from payload: ${JSON.stringify(req.body)}`,
+          );
       }
     }
 

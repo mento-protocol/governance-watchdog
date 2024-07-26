@@ -57,8 +57,8 @@ export default function parseTransactionReceipts(
         case EventType.Unknown:
           // It can happen that a single transaction fired multiple events, some of which we are not interested in
           continue;
-        case EventType.ProposalCreated:
-          const proposalEvent = decodeEventLog({
+        case EventType.ProposalCreated: {
+          const event = decodeEventLog({
             abi: GovernorABI,
             data: log.data as `0x${string}`,
             topics: log.topics as [
@@ -67,15 +67,16 @@ export default function parseTransactionReceipts(
             ],
           });
 
-          if (isProposalCreatedEvent(proposalEvent)) {
+          if (isProposalCreatedEvent(event)) {
             result.push({
-              event: proposalEvent,
+              event,
               txHash: log.transactionHash,
             });
           }
           break;
-        case EventType.MedianUpdated:
-          const healthCheckEvent = decodeEventLog({
+        }
+        case EventType.MedianUpdated: {
+          const event = decodeEventLog({
             abi: SortedOraclesABI,
             data: log.data as `0x${string}`,
             topics: log.topics as [
@@ -84,14 +85,15 @@ export default function parseTransactionReceipts(
             ],
           });
 
-          if (isHealthCheckEvent(healthCheckEvent)) {
+          if (isHealthCheckEvent(event)) {
             result.push({
               block: Number(receipt.blockNumber),
-              event: healthCheckEvent,
+              event,
               txHash: log.transactionHash,
             });
           }
           break;
+        }
         default:
           assert(false, `Unknown event type: ${eventType}`);
       }
