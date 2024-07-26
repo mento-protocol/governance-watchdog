@@ -1,12 +1,12 @@
 resource "google_cloudfunctions2_function" "watchdog_notifications" {
   project     = module.bootstrap.seed_project_id
   location    = var.region
-  name        = "watchdog-notifications"
+  name        = var.function_name
   description = "A cloud function that receives blockchain event data from QuickAlerts and sends notifications to a Discord channel"
 
   build_config {
     runtime         = "nodejs20"
-    entry_point     = "watchdogNotifier"
+    entry_point     = var.function_entry_point
     service_account = "projects/${module.bootstrap.seed_project_id}/serviceAccounts/${module.bootstrap.terraform_sa_email}"
 
     source {

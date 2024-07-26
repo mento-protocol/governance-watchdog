@@ -69,3 +69,13 @@ variable "quicknode_api_key" {
   type      = string
   sensitive = true
 }
+
+variable "function_name" {
+  type    = string
+  default = "watchdog-notifications"
+}
+
+variable "function_entry_point" {
+  type    = string
+  default = "watchdogNotifier"
+}

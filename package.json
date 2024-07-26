@@ -6,6 +6,7 @@
   "author": "Mento Labs <eng@mentolabs.xyz>",
   "main": "dist/index.js",
   "scripts": {
+    "cache:clear": "./set-project-vars.sh --no-cache",
     "deploy": "npm run deploy:via:tf",
     "deploy:via:gcloud": "./deploy-via-gcloud.sh",
     "deploy:via:terraform": "npm run deploy:via:tf",
