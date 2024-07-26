@@ -95,7 +95,10 @@ export default function parseTransactionReceipts(
           break;
         }
         default:
-          assert(false, `Unknown event type: ${eventType}`);
+          assert(
+            false,
+            `Unknown event type. Did you forget to add a new event?`,
+          );
       }
     }
   }
