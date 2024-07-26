@@ -16,7 +16,7 @@ import SortedOraclesABI from "./sorted-oracles-abi.js";
 export default function parseTransactionReceipts(
   matchedTransactionReceipts: unknown,
 ): {
-  block: number;
+  block?: number;
   event: ProposalCreatedEvent | HealthCheckEvent;
   txHash: string;
 }[] {
@@ -61,7 +61,6 @@ export default function parseTransactionReceipts(
 
         if (isProposalCreatedEvent(event)) {
           result.push({
-            block: Number(receipt.blockNumber),
             event,
             txHash: log.transactionHash,
           });
