@@ -79,3 +79,11 @@ variable "function_entry_point" {
   type    = string
   default = "watchdogNotifier"
 }
+
+# Webhook URL to send monitoring alerts from within GCP Monitoring
+# You can find this URL in Victorops by going to "Integrations" -> "Stackdriver".
+# The routing key can be found under "Settings" -> "Routing Keys"
+variable "victorops_webhook_url" {
+  type      = string
+  sensitive = true
+}
