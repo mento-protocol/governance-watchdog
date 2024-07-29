@@ -42,12 +42,12 @@ resource "google_monitoring_alert_policy" "health_check_policy" {
         metric.type   = "logging.googleapis.com/user/${google_logging_metric.health_check_metric.name}"
       EOF
 
-      duration        = "300s"
+      duration        = "300s" # Re-test the condition every 5 minutes
       comparison      = "COMPARISON_LT"
       threshold_value = 1
 
       aggregations {
-        alignment_period   = "21600s"
+        alignment_period   = "21600s" # 6 hours
         per_series_aligner = "ALIGN_SUM"
       }
 
