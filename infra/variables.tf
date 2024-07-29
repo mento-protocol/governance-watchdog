@@ -55,3 +55,11 @@ variable "quicknode_api_key" {
   type      = string
   sensitive = true
 }
+
+# Webhook URL to send monitoring alerts from within GCP Monitoring
+# You can find this URL in Victorops by going to "Integrations" -> "Stackdriver".
+# The routing key can be found under "Settings" -> "Routing Keys"
+variable "victorops_webhook_url" {
+  type      = string
+  sensitive = true
+}
