@@ -57,6 +57,6 @@ resource "google_monitoring_alert_policy" "health_check_policy" {
     }
   }
 
-  notification_channels = ["${google_monitoring_notification_channel.victorops_channel.id}"]
+  notification_channels = [google_monitoring_notification_channel.victorops_channel.id]
   severity              = "CRITICAL"
 }
