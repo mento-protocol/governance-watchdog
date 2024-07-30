@@ -1,14 +1,12 @@
 resource "google_cloudfunctions2_function" "watchdog_notifications" {
   project     = module.bootstrap.seed_project_id
   location    = var.region
-  name        = "watchdog-notifications"
+  name        = var.function_name
   description = "A cloud function that receives blockchain event data from QuickAlerts and sends notifications to a Discord channel"
 
   build_config {
-    runtime     = "nodejs20"
-    entry_point = "watchdogNotifier"
-
-    # Use the service account created by terraform for the project (not the default Compute Engine service account)
+    runtime         = "nodejs20"
+    entry_point     = var.function_entry_point
     service_account = "projects/${module.bootstrap.seed_project_id}/serviceAccounts/${module.bootstrap.terraform_sa_email}"
 
     source {
@@ -20,11 +18,9 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
   }
 
   service_config {
-    available_memory = "256M"
-    timeout_seconds  = 60
-
-    # Use the service account created by terraform for the project (not the default Compute Engine service account)
+    available_memory      = "256M"
     service_account_email = module.bootstrap.terraform_sa_email
+    timeout_seconds       = 60
 
     # 🔒 Security Note: Checkov recommends to only allow this function to be called from a cloud load balancer.
     # We're making a conscious security tradeoff here for lower complexity and faster delivery. It seems unlikely

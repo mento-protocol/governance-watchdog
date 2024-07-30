@@ -3,7 +3,7 @@
 # and if it can't find it locally it will prompt the user to enter it manually.
 resource "google_secret_manager_secret" "discord_webhook_url" {
   project   = module.bootstrap.seed_project_id
-  secret_id = "discord-webhook-url"
+  secret_id = var.discord_webhook_url_secret_id
 
   replication {
     auto {}
@@ -20,7 +20,7 @@ resource "google_secret_manager_secret_version" "discord_webhook_url" {
 # and if it can't find it locally it will prompt the user to enter it manually.
 resource "google_secret_manager_secret" "telegram_bot_token" {
   project   = module.bootstrap.seed_project_id
-  secret_id = "telegram-bot-token"
+  secret_id = var.telegram_bot_token_secret_id
 
   replication {
     auto {}
