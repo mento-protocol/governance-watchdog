@@ -12,3 +12,6 @@ errored.tfstate
 dist/
 function-source.zip
 node_modules/
+
+# Local Stuff
+.project_vars_cache
