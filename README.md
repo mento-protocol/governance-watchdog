@@ -134,7 +134,7 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
    echo "\ntelegram_chat_id = \"$(terraform state show "google_cloudfunctions2_function.watchdog_notifications" | grep TELEGRAM_CHAT_ID | awk -F '= ' '{print $2}' | tr -d '"')\"" >> terraform.tfvars
 
    # Get the bot token from secret manager (you need the "Secret Manager Secret Accessor" IAM role for this command to succeed)
-   echo "telegram_bot_token = \"$(gcloud secrets versions access latest --secret telegram_bot_token)\"" >> terraform.tfvars
+   echo "telegram_bot_token = \"$(gcloud secrets versions access latest --secret telegram-bot-token)\"" >> terraform.tfvars
    ```
 
 1. [Get our QuickNode API key from the QuickNode dashboard](https://dashboard.quicknode.com/api-keys) and add it to your local `terraform.tfvars`:
