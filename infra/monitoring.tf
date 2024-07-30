@@ -47,8 +47,9 @@ resource "google_monitoring_alert_policy" "health_check_policy" {
       threshold_value = 1
 
       aggregations {
-        alignment_period   = "21600s" # 6 hours
-        per_series_aligner = "ALIGN_SUM"
+        alignment_period     = "21600s" # 6 hours
+        per_series_aligner   = "ALIGN_SUM"
+        cross_series_reducer = "REDUCE_SUM"
       }
 
       trigger {
