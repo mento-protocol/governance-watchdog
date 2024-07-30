@@ -97,10 +97,10 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
    terraform init
    ```
 
-1. Create a `terraform.tfvars` file in the `./infra` folder, this is like `.env` for Terraform:
+1. While inside the `infra` folder, create `terraform.tfvars` file. This is like `.env` for Terraform:
 
    ```sh
-   touch ./infra/terraform.tfvars
+   touch terraform.tfvars
    # This file is `.gitignore`d to avoid accidentally leaking sensitive data
    ```
 
