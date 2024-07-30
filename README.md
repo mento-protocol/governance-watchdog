@@ -146,6 +146,13 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
    This is necessary for Terraform to be able to create & destroy QuickAlerts as part of `terraform apply`
 
+1. Get the VictorOps Webhook URL to your local `terraform.tfvars`. You can get it by going to VictorOps and clicking `Integrations` > `Stackdriver` and copying the URL. The routing key can be founder under the `Settings` tab:
+
+   ```sh
+   # ./infra/terraform.tfvars
+   victorops_webhook_url   = "<victorops-webhook-url>/<victorops-routing-key>"
+   ```
+
 1. Auto-generate a local `.env` file by running `npm run generate:env`
 
 ## Running and testing the Cloud Function locally
