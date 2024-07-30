@@ -20,6 +20,18 @@ resource "quicknode_notification" "notification" {
   enabled         = true
 }
 
+# Creates a new QuickAlert event listener for `MedianUpdated` events on our SortedOracles contract,
+# which is used as a health check event to ensure quicknode alerts are firing.
+resource "quicknode_notification" "healthcheck" {
+  name    = "Healthcheck event"
+  network = "celo-mainnet"
+
+  # Decoded version: `tx_logs_address == '0xefb84935239dacdecf7c5ba76d8de40b077b7b33' && tx_logs_topic0 == '0xa9981ebfc3b766a742486e898f54959b050a66006dbce1a4155c1f84a08bcf41' && tx_logs_topic1 == '0x000000000000000000000000765de816845861e75a25fca122bb6898b8b1282a'`
+  expression      = "dHhfbG9nc19hZGRyZXNzID09ICcweGVmYjg0OTM1MjM5ZGFjZGVjZjdjNWJhNzZkOGRlNDBiMDc3YjdiMzMnICYmIHR4X2xvZ3NfdG9waWMwID09ICcweGE5OTgxZWJmYzNiNzY2YTc0MjQ4NmU4OThmNTQ5NTliMDUwYTY2MDA2ZGJjZTFhNDE1NWMxZjg0YTA4YmNmNDEnICYmIHR4X2xvZ3NfdG9waWMxID09ICcweDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDc2NWRlODE2ODQ1ODYxZTc1YTI1ZmNhMTIyYmI2ODk4YjhiMTI4MmEn"
+  destination_ids = [resource.quicknode_destination.destination.id]
+  enabled         = true
+}
+
 # Creates a new QuickAlert destination that forwards all received `ProposalCreated` transaction receipts to our Cloud Function
 resource "quicknode_destination" "destination" {
   name         = "Cloud Function"

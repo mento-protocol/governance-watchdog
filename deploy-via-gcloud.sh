@@ -1,19 +1,14 @@
-#! /bin/bash
-set -e          # fail on any error
-set -o pipefail # ensure non-zero exit codes are propagated in piped commands
+#!/bin/bash
+set -e          # Fail on any error
+set -o pipefail # Ensure piped commands propagate exit codes properly
+set -u          # Treat unset variables as an error when substituting
 
-entry_point="watchdogNotifier"
-function_name="watchdog-notifications"
-region="europe-west1"
+# Load the project variables
+source ./set-project-vars.sh
 
-printf "Looking up function name..."
-function_name=$(gcloud functions list --format="value(name)" | grep '^watchdog-notifications')
-printf ' \033[1m%s\033[0m\n' "${function_name}"
-
-printf "Looking up project ID..."
-project_name="governance-watchdog"
-project_id=$(gcloud projects list --filter="name:${project_name}*" --format="value(projectId)")
-printf ' \033[1m%s\033[0m\n' "${project_id}"
+printf "Looking up entry point..."
+entry_point=$(gcloud functions describe "${function_name}" --region="${region}" --format json | jq .buildConfig.entryPoint)
+printf ' \033[1m%s\033[0m\n' "${entry_point}"
 
 printf "Looking up service account for function..."
 service_account_email=$(gcloud functions describe "${function_name}" --region="${region}" --format="value(serviceConfig.serviceAccountEmail)")

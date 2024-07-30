@@ -31,6 +31,13 @@ variable "group_billing_admins" {
   type = string
 }
 
+# You can look this up via:
+#  `gcloud secrets list`
+variable "discord_webhook_url_secret_id" {
+  type    = string
+  default = "discord-webhook-url"
+}
+
 # You can look this up either on the Discord Channel settings, or fetch it from Secret Manager via:
 #  `gcloud secrets versions access latest --secret discord-webhook-url`
 variable "discord_webhook_url" {
@@ -44,6 +51,13 @@ variable "telegram_chat_id" {
 }
 
 # You can look this up via:
+#  `gcloud secrets list`
+variable "telegram_bot_token_secret_id" {
+  type    = string
+  default = "telegram-bot-token"
+}
+
+# You can look this up via:
 #  `gcloud secrets versions access latest --secret telegram-bot-token`
 variable "telegram_bot_token" {
   type      = string
@@ -52,6 +66,24 @@ variable "telegram_bot_token" {
 
 # You can create an API key via the QuickNode dashboard at https://dashboard.quicknode.com/api-keys
 variable "quicknode_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "function_name" {
+  type    = string
+  default = "watchdog-notifications"
+}
+
+variable "function_entry_point" {
+  type    = string
+  default = "watchdogNotifier"
+}
+
+# Webhook URL to send monitoring alerts from within GCP Monitoring
+# You can find this URL in Victorops by going to "Integrations" -> "Stackdriver".
+# The routing key can be found under "Settings" -> "Routing Keys"
+variable "victorops_webhook_url" {
   type      = string
   sensitive = true
 }
