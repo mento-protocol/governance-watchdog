@@ -137,6 +137,13 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
    echo "telegram_bot_token = \"$(gcloud secrets versions access latest --secret telegram-bot-token)\"" >> terraform.tfvars
    ```
 
+1. Add the secret auth token from Google Cloud Secret Manager to your local `terraform.tfvars`:
+
+   ```sh
+   # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
+   echo "x_auth_token = \"$(gcloud secrets versions access latest --secret x-auth-token)\"" >> terraform.tfvars
+   ```
+
 1. [Get our QuickNode API key from the QuickNode dashboard](https://dashboard.quicknode.com/api-keys) and add it to your local `terraform.tfvars`:
 
    ```sh
