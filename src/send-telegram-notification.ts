@@ -1,12 +1,12 @@
 import config from "./config.js";
-import getTelegramBotToken from "./get-telegram-bot-token";
+import getSecret from "./get-secret.js";
 import { ProposalCreatedEvent } from "./types";
 
 export default async function sendTelegramNotification(
   event: ProposalCreatedEvent,
   txHash: string,
 ) {
-  const botToken = await getTelegramBotToken();
+  const botToken = await getSecret(config.TELEGRAM_BOT_TOKEN_SECRET_ID);
   const botUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
   const { title, description } = JSON.parse(event.args.description) as {

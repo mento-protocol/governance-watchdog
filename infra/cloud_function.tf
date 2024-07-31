@@ -30,10 +30,12 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
 
     environment_variables = {
       # Necessary for the function to be able to find the secrets in Secret Manager
-      GCP_PROJECT_ID                = module.bootstrap.seed_project_id
-      DISCORD_WEBHOOK_URL_SECRET_ID = google_secret_manager_secret.discord_webhook_url.secret_id
-      TELEGRAM_BOT_TOKEN_SECRET_ID  = google_secret_manager_secret.telegram_bot_token.secret_id
-      TELEGRAM_CHAT_ID              = var.telegram_chat_id
+      GCP_PROJECT_ID                     = module.bootstrap.seed_project_id
+      DISCORD_WEBHOOK_URL_SECRET_ID      = google_secret_manager_secret.discord_webhook_url.secret_id
+      TELEGRAM_BOT_TOKEN_SECRET_ID       = google_secret_manager_secret.telegram_bot_token.secret_id
+      TELEGRAM_CHAT_ID                   = var.telegram_chat_id
+      QUICKNODE_SECURITY_TOKEN_SECRET_ID = google_secret_manager_secret.quicknode_security_token.secret_id
+      X_AUTH_TOKEN_SECRET_ID             = google_secret_manager_secret.x_auth_token.secret_id
 
       # Logs execution ID for easier debugging => https://cloud.google.com/functions/docs/monitoring/logging#viewing_runtime_logs
       LOG_EXECUTION_ID = true

@@ -70,6 +70,25 @@ variable "quicknode_api_key" {
   sensitive = true
 }
 
+# You can look this up via:
+#  `gcloud secrets list`
+variable "quicknode_security_token_secret_id" {
+  type    = string
+  default = "quicknode-security-token"
+}
+
+# You can look this up via:
+#  `gcloud secrets list`
+variable "x_auth_token_secret_id" {
+  type    = string
+  default = "x-auth-token"
+}
+
+variable "x_auth_token" {
+  type      = string
+  sensitive = true
+}
+
 variable "function_name" {
   type    = string
   default = "watchdog-notifications"

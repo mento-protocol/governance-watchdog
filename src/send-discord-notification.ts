@@ -1,5 +1,6 @@
 import { EmbedBuilder, WebhookClient } from "discord.js";
-import getDiscordWebhookUrl from "./get-discord-webhook-url.js";
+import config from "./config";
+import getSecret from "./get-secret.js";
 import type { ProposalCreatedEvent } from "./types";
 
 export default async function sendDiscordNotification(
@@ -30,7 +31,7 @@ export default async function sendDiscordNotification(
     .setColor(0xa6e5f6);
 
   const discordWebhookClient = new WebhookClient({
-    url: await getDiscordWebhookUrl(),
+    url: await getSecret(config.DISCORD_WEBHOOK_URL_SECRET_ID),
   });
 
   await discordWebhookClient.send({
