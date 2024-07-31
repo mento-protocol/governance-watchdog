@@ -10,5 +10,5 @@ auth_token=$(gcloud secrets versions access latest --secret x-auth-token)
 
 curl "${function_url}" \
 	-H "Content-Type: application/json" \
-	-H "X-AUTH-TOKEN: $auth_token" \
+	-H "X-AUTH-TOKEN: ${auth_token}" \
 	-d @src/proposal-created.fixture.json

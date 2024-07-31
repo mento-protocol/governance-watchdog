@@ -12,6 +12,18 @@ export async function isFromQuicknode(req: Request): Promise<boolean> {
   const contentHash = req.headers["x-qn-content-hash"];
   const timestamp = req.headers["x-qn-timestamp"];
 
+  if (!nonce || typeof nonce !== "string") {
+    return false;
+  }
+
+  if (!contentHash || typeof contentHash !== "string") {
+    return false;
+  }
+
+  if (!timestamp || typeof timestamp !== "string") {
+    return false;
+  }
+
   const hmac = crypto.createHmac("sha256", quicknodeSecurityToken);
   hmac.update(`${nonce}${contentHash}${timestamp}`);
 
