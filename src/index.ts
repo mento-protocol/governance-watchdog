@@ -10,17 +10,25 @@ import { EventType } from "./types.js";
 import parseTransactionReceipts from "./parse-transaction-receipts";
 import sendDiscordNotification from "./send-discord-notification";
 import sendTelegramNotification from "./send-telegram-notification";
-// import validateRequestOrigin from "./validate-request-origin";
+import { isFromQuicknode, hasAuthToken } from "./validate-request-origin";
 
 export const watchdogNotifier: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
+  const isProduction = process.env.NODE_ENV !== "development";
   try {
-    // TODO: Activate this after we've verified it's working via SortedOracle events
-    // if (process.env.NODE_ENV !== "development") {
-    //   await validateRequestOrigin(req);
-    // }
+    if (isProduction) {
+      const isAuthorized =
+        (await isFromQuicknode(req)) || (await hasAuthToken(req));
+
+      if (!isAuthorized) {
+        console.error("Origin validation failed for request.");
+        res.status(401).send("Unauthorized");
+        return;
+      }
+    }
+
     const parsedEvents = parseTransactionReceipts(req.body);
 
     for (const parsedEvent of parsedEvents) {

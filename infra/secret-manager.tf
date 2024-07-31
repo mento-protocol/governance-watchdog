@@ -30,6 +30,21 @@ resource "google_secret_manager_secret_version" "telegram_bot_token" {
   secret_data = var.telegram_bot_token
 }
 
+# Creates a new secret for the x-auth-token header, which is used to authenticate requests of origin other than Quicknode.
+resource "google_secret_manager_secret" "x_auth_token" {
+  project   = module.bootstrap.seed_project_id
+  secret_id = var.x_auth_token_secret_id
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "x_auth_token" {
+  secret      = google_secret_manager_secret.x_auth_token.id
+  secret_data = var.x_auth_token
+}
+
 # Creates a new secret for the Quicknode Security Token which is used to verify that requests to the Cloud Function are coming from Quicknode.
 resource "google_secret_manager_secret" "quicknode_security_token" {
   project   = module.bootstrap.seed_project_id
