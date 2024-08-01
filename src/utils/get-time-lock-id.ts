@@ -34,7 +34,6 @@ async function getTransactionReceiptAndDecodeLogs(
 
         console.log("Decoded event log", decodedLog);
 
-        // @ts-ignore
         const { targets, values, calldatas, description } = decodedLog.args;
         const descriptionHash = keccak256(Buffer.from(description));
 
@@ -75,4 +74,6 @@ async function main() {
   await getTransactionReceiptAndDecodeLogs(client, TX_HASH);
 }
 
-main().then(() => {});
+main().catch((error: unknown) => {
+  console.error("Error while getting time-lock id", error);
+});
