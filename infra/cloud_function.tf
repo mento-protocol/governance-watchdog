@@ -18,7 +18,7 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
   }
 
   service_config {
-    available_memory      = "256M"
+    available_memory      = "512M"
     service_account_email = module.bootstrap.terraform_sa_email
     timeout_seconds       = 60
 

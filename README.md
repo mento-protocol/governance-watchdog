@@ -124,7 +124,7 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
    ```sh
    # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
-   echo "discord_webhook_url = \"$(gcloud secrets versions access latest --secret discord-webhook-url)\"" >> terraform.tfvars
+   echo "\ndiscord_webhook_url = \"$(gcloud secrets versions access latest --secret discord-webhook-url)\"" >> terraform.tfvars
    ```
 
 1. Add the Telegram Bot Token and Chat ID to your local `terraform.tfvars`
@@ -134,14 +134,14 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
    echo "\ntelegram_chat_id = \"$(terraform state show "google_cloudfunctions2_function.watchdog_notifications" | grep TELEGRAM_CHAT_ID | awk -F '= ' '{print $2}' | tr -d '"')\"" >> terraform.tfvars
 
    # Get the bot token from secret manager (you need the "Secret Manager Secret Accessor" IAM role for this command to succeed)
-   echo "telegram_bot_token = \"$(gcloud secrets versions access latest --secret telegram-bot-token)\"" >> terraform.tfvars
+   echo "\ntelegram_bot_token = \"$(gcloud secrets versions access latest --secret telegram-bot-token)\"" >> terraform.tfvars
    ```
 
 1. Add the secret auth token from Google Cloud Secret Manager to your local `terraform.tfvars`:
 
    ```sh
    # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
-   echo "x_auth_token = \"$(gcloud secrets versions access latest --secret x-auth-token)\"" >> terraform.tfvars
+   echo "\nx_auth_token = \"$(gcloud secrets versions access latest --secret x-auth-token)\"" >> terraform.tfvars
    ```
 
 1. [Get our QuickNode API key from the QuickNode dashboard](https://dashboard.quicknode.com/api-keys) and add it to your local `terraform.tfvars`:
@@ -153,7 +153,7 @@ A monorepo for our governance watchdog, a system that monitors Mento Governance 
 
    This is necessary for Terraform to be able to create & destroy QuickAlerts as part of `terraform apply`
 
-1. Get the VictorOps Webhook URL to your local `terraform.tfvars`. You can get it by going to VictorOps and clicking `Integrations` > `Stackdriver` and copying the URL. The routing key can be founder under the `Settings` tab:
+1. Get the VictorOps Webhook URL to your local `terraform.tfvars`. You can get it by going to [our VictorOps](https://portal.victorops.com/dash/mento-labs-gmbh#/advanced/stackdriver) and clicking `Integrations` > `Stackdriver` and copying the URL. The routing key can be founder under the [`Settings`](https://portal.victorops.com/dash/mento-labs-gmbh#/routekeys) tab:
 
    ```sh
    # ./infra/terraform.tfvars
