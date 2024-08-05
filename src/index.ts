@@ -34,8 +34,18 @@ export const watchdogNotifier: HttpFunction = async (
     for (const parsedEvent of parsedEvents) {
       switch (parsedEvent.event.eventName) {
         case EventType.ProposalCreated:
-          await sendDiscordNotification(parsedEvent.event, parsedEvent.txHash);
-          await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
+          await sendDiscordNotification(
+            parsedEvent.event,
+            // eslint-disable-next-line
+            parsedEvent.timeLockId!,
+            parsedEvent.txHash,
+          );
+          await sendTelegramNotification(
+            parsedEvent.event,
+            // eslint-disable-next-line
+            parsedEvent.timeLockId!,
+            parsedEvent.txHash,
+          );
           break;
         case EventType.MedianUpdated:
           // Acts a health check/heartbeat for the service, as it's a frequently emitted event

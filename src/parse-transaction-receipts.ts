@@ -12,6 +12,7 @@ import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 import SortedOraclesABI from "./sorted-oracles-abi.js";
+import getProposalTimeLockId from "./utils/get-time-lock-id.js";
 
 /**
  * Parse request body containing raw transaction receipts
@@ -21,6 +22,7 @@ export default function parseTransactionReceipts(
 ): {
   block?: number;
   event: ProposalCreatedEvent | HealthCheckEvent;
+  timeLockId?: string;
   txHash: string;
 }[] {
   const result = [];
@@ -72,6 +74,7 @@ export default function parseTransactionReceipts(
 
           result.push({
             event,
+            timeLockId: getProposalTimeLockId(event),
             txHash: log.transactionHash,
           });
           break;
