@@ -14,7 +14,6 @@
     "deploy:via:tf": "terraform -chdir=infra apply",
     "gcp-build": "npm run build",
     "generate:env": "terraform -chdir=infra apply -target=local_file.env_file",
-    "get-time-lock-id": "ts-node src/utils/get-time-lock-id.ts",
     "logs": "./get-logs.sh",
     "logs:url": "./get-logs-url.sh",
     "prestart": "npm run build",
@@ -39,7 +38,6 @@
     "@types/eslint__js": "^8.42.3",
     "eslint": "^9.7.0",
     "rimraf": "^6.0.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0-alpha.51"
   }
