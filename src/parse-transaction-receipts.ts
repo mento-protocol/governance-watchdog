@@ -68,12 +68,12 @@ export default function parseTransactionReceipts(
             ],
           });
 
-          if (isProposalCreatedEvent(event)) {
-            result.push({
-              event,
-              txHash: log.transactionHash,
-            });
-          }
+          assert(isProposalCreatedEvent(event));
+
+          result.push({
+            event,
+            txHash: log.transactionHash,
+          });
           break;
         }
         case EventType.MedianUpdated: {
@@ -86,13 +86,13 @@ export default function parseTransactionReceipts(
             ],
           });
 
-          if (isHealthCheckEvent(event)) {
-            result.push({
-              block: Number(receipt.blockNumber),
-              event,
-              txHash: log.transactionHash,
-            });
-          }
+          assert(isHealthCheckEvent(event));
+
+          result.push({
+            block: Number(receipt.blockNumber),
+            event,
+            txHash: log.transactionHash,
+          });
           break;
         }
         default:
