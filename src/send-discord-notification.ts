@@ -5,7 +5,7 @@ import type { ProposalCreatedEvent } from "./types";
 
 export default async function sendDiscordNotification(
   event: ProposalCreatedEvent,
-  timeLockId: string,
+  timelockId: string,
   txHash: string,
 ) {
   const { title, description } = JSON.parse(event.args.description) as {
@@ -30,8 +30,8 @@ export default async function sendDiscordNotification(
       value: `https://celoscan.io/tx/${txHash}`,
     })
     .addFields({
-      name: "Time Lock ID",
-      value: timeLockId,
+      name: "Timelock ID",
+      value: timelockId,
     })
     .setColor(0xa6e5f6);
 

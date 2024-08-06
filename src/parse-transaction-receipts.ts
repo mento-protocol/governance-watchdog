@@ -8,7 +8,7 @@ import GovernorABI from "./governor-abi.js";
 import SortedOraclesABI from "./sorted-oracles-abi.js";
 import { EventType, HealthCheckEvent, ProposalCreatedEvent } from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
-import getProposalTimeLockId from "./utils/get-time-lock-id.js";
+import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
 import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
@@ -22,7 +22,7 @@ export default function parseTransactionReceipts(
 ): {
   block?: number;
   event: ProposalCreatedEvent | HealthCheckEvent;
-  timeLockId?: string;
+  timelockId?: string;
   txHash: string;
 }[] {
   const result = [];
@@ -75,7 +75,7 @@ export default function parseTransactionReceipts(
 
           result.push({
             event,
-            timeLockId: getProposalTimeLockId(event),
+            timelockId: getProposaltimelockId(event),
             txHash: log.transactionHash,
           });
           break;

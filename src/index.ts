@@ -32,17 +32,17 @@ export const watchdogNotifier: HttpFunction = async (
     for (const parsedEvent of parsedEvents) {
       switch (parsedEvent.event.eventName) {
         case EventType.ProposalCreated:
-          assert(parsedEvent.timeLockId, "Time lock ID is missing");
+          assert(parsedEvent.timelockId, "Timelock ID is missing");
 
           await sendDiscordNotification(
             parsedEvent.event,
-            parsedEvent.timeLockId,
+            parsedEvent.timelockId,
             parsedEvent.txHash,
           );
 
           await sendTelegramNotification(
             parsedEvent.event,
-            parsedEvent.timeLockId,
+            parsedEvent.timelockId,
             parsedEvent.txHash,
           );
 
