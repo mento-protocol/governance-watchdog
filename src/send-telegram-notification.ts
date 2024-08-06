@@ -4,6 +4,7 @@ import { ProposalCreatedEvent } from "./types";
 
 export default async function sendTelegramNotification(
   event: ProposalCreatedEvent,
+  timelockId: string,
   txHash: string,
 ) {
   const botToken = await getSecret(config.TELEGRAM_BOT_TOKEN_SECRET_ID);
@@ -19,6 +20,7 @@ export default async function sendTelegramNotification(
     Proposer: `https://celoscan.io/address/${event.args.proposer}`,
     Event: event.eventName,
     Transaction: `https://celoscan.io/tx/${txHash}`,
+    "Timelock ID": timelockId,
     Description: description,
   };
 

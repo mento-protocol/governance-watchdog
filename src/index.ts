@@ -1,16 +1,14 @@
-import assert from "assert/strict";
-
-// Types
 import type {
   HttpFunction,
   Request,
   Response,
 } from "@google-cloud/functions-framework";
-import { EventType } from "./types.js";
+import assert from "assert/strict";
 import parseTransactionReceipts from "./parse-transaction-receipts";
 import sendDiscordNotification from "./send-discord-notification";
 import sendTelegramNotification from "./send-telegram-notification";
-import { isFromQuicknode, hasAuthToken } from "./validate-request-origin";
+import { EventType } from "./types.js";
+import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
 
 export const watchdogNotifier: HttpFunction = async (
   req: Request,
@@ -34,13 +32,27 @@ export const watchdogNotifier: HttpFunction = async (
     for (const parsedEvent of parsedEvents) {
       switch (parsedEvent.event.eventName) {
         case EventType.ProposalCreated:
-          await sendDiscordNotification(parsedEvent.event, parsedEvent.txHash);
-          await sendTelegramNotification(parsedEvent.event, parsedEvent.txHash);
+          assert(parsedEvent.timelockId, "Timelock ID is missing");
+
+          await sendDiscordNotification(
+            parsedEvent.event,
+            parsedEvent.timelockId,
+            parsedEvent.txHash,
+          );
+
+          await sendTelegramNotification(
+            parsedEvent.event,
+            parsedEvent.timelockId,
+            parsedEvent.txHash,
+          );
+
           break;
+
         case EventType.MedianUpdated:
           // Acts a health check/heartbeat for the service, as it's a frequently emitted event
           console.info("[HealthCheck]: Block", parsedEvent.block);
           break;
+
         default:
           assert(
             false,

@@ -50,7 +50,6 @@ export interface ProposalCreatedEvent {
 
 export interface HealthCheckEvent {
   eventName: EventType.MedianUpdated;
-  block: number;
   args: {
     token: `0x${string}`;
     value: bigint;
