@@ -5,14 +5,14 @@ import { decodeEventLog } from "viem";
 
 // Internal
 import GovernorABI from "./governor-abi.js";
+import SortedOraclesABI from "./sorted-oracles-abi.js";
 import { EventType, HealthCheckEvent, ProposalCreatedEvent } from "./types.js";
-import hasLogs from "./utils/has-logs.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
+import getProposalTimeLockId from "./utils/get-time-lock-id.js";
+import hasLogs from "./utils/has-logs.js";
 import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
-import SortedOraclesABI from "./sorted-oracles-abi.js";
-import getProposalTimeLockId from "./utils/get-time-lock-id.js";
 
 /**
  * Parse request body containing raw transaction receipts
@@ -60,6 +60,7 @@ export default function parseTransactionReceipts(
           // It can happen that a single transaction fires multiple events,
           // some of which we are not interested in
           continue;
+
         case EventType.ProposalCreated: {
           const event = decodeEventLog({
             abi: GovernorABI,
@@ -79,6 +80,7 @@ export default function parseTransactionReceipts(
           });
           break;
         }
+
         case EventType.MedianUpdated: {
           const event = decodeEventLog({
             abi: SortedOraclesABI,
@@ -98,6 +100,7 @@ export default function parseTransactionReceipts(
           });
           break;
         }
+
         default:
           assert(
             false,
