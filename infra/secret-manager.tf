@@ -2,7 +2,7 @@
 # Terraform will try to look up the webhook URL from terraform.tfvars,
 # and if it can't find it locally it will prompt the user to enter it manually.
 resource "google_secret_manager_secret" "discord_webhook_url" {
-  project   = module.bootstrap.seed_project_id
+  project   = module.governance_watchdog.project_id
   secret_id = var.discord_webhook_url_secret_id
 
   replication {
@@ -17,7 +17,7 @@ resource "google_secret_manager_secret_version" "discord_webhook_url" {
 
 # Creates a new secret for the Telegram Bot Token.
 resource "google_secret_manager_secret" "telegram_bot_token" {
-  project   = module.bootstrap.seed_project_id
+  project   = module.governance_watchdog.project_id
   secret_id = var.telegram_bot_token_secret_id
 
   replication {
@@ -32,7 +32,7 @@ resource "google_secret_manager_secret_version" "telegram_bot_token" {
 
 # Creates a new secret for the x-auth-token header, which is used to authenticate requests of origin other than Quicknode.
 resource "google_secret_manager_secret" "x_auth_token" {
-  project   = module.bootstrap.seed_project_id
+  project   = module.governance_watchdog.project_id
   secret_id = var.x_auth_token_secret_id
 
   replication {
@@ -47,7 +47,7 @@ resource "google_secret_manager_secret_version" "x_auth_token" {
 
 # Creates a new secret for the Quicknode Security Token which is used to verify that requests to the Cloud Function are coming from Quicknode.
 resource "google_secret_manager_secret" "quicknode_security_token" {
-  project   = module.bootstrap.seed_project_id
+  project   = module.governance_watchdog.project_id
   secret_id = "quicknode-security-token"
 
   replication {
