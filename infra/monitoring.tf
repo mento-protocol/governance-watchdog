@@ -1,6 +1,6 @@
 # Creates a metric that counts the number of log entries containing 'HealthCheck' in the watchdog cloud function.
 resource "google_logging_metric" "health_check_metric" {
-  project     = module.bootstrap.seed_project_id
+  project     = module.governance_watchdog.project_id
   name        = "health_check_logs_count"
   description = "Number of log entries containing 'health check' in the watchdog cloud function"
   filter      = <<EOF
@@ -12,7 +12,7 @@ resource "google_logging_metric" "health_check_metric" {
 
 # Creates a notification channel where alerts will be sent based on the alert policy below.
 resource "google_monitoring_notification_channel" "victorops_channel" {
-  project      = module.bootstrap.seed_project_id
+  project      = module.governance_watchdog.project_id
   display_name = "Splunk (VictorOps)"
   type         = "webhook_tokenauth"
 
@@ -24,7 +24,7 @@ resource "google_monitoring_notification_channel" "victorops_channel" {
 # Creates an alert policy that triggers when no health check logs have been received in the last 6 hours,
 # and sends a notification to the channel above.
 resource "google_monitoring_alert_policy" "health_check_policy" {
-  project      = module.bootstrap.seed_project_id
+  project      = module.governance_watchdog.project_id
   display_name = "no-health-check-logs"
   combiner     = "OR"
   enabled      = true

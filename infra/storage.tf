@@ -1,7 +1,7 @@
 # Create the Storage Bucket for the Cloud Function source code
 resource "google_storage_bucket" "watchdog_notifications_function" {
-  project                     = module.bootstrap.seed_project_id
-  name                        = "${module.bootstrap.seed_project_id}-watchdog-cloud-function" # Every bucket name must be globally unique
+  project                     = module.governance_watchdog.project_id
+  name                        = "${module.governance_watchdog.project_id}-watchdog-cloud-function" # Every bucket name must be globally unique
   location                    = var.region
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"
@@ -37,8 +37,8 @@ resource "google_storage_bucket_object" "source_code" {
 # Create the Storage Bucket for access logs
 resource "google_storage_bucket" "logging" {
   #checkov:skip=CKV_GCP_62:The logging bucket can't log to itself (circular dependency)
-  project                     = module.bootstrap.seed_project_id
-  name                        = "${module.bootstrap.seed_project_id}-logging" # Every bucket name must be globally unique
+  project                     = module.governance_watchdog.project_id
+  name                        = "${module.governance_watchdog.project_id}-logging" # Every bucket name must be globally unique
   location                    = var.region
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"

@@ -19,16 +19,14 @@ variable "billing_account" {
   type = string
 }
 
-# You can find the org admins group via:
-#  `gcloud organizations get-iam-policy <our-org-id> --format=json | jq -r '.bindings[] | select(.role | startswith("roles/resourcemanager.organizationAdmin"))  | .members[] | select(startswith("group:")) | sub("^group:"; "")'`
-variable "group_org_admins" {
-  type = string
+variable "function_name" {
+  type    = string
+  default = "watchdog-notifications"
 }
 
-# You can find the billing admins group via:
-#  `gcloud organizations get-iam-policy <our-org-id> --format=json | jq -r '.bindings[] | select(.role | startswith("roles/billing.admin"))  | .members[] | select(startswith("group:")) | sub("^group:"; "")'`
-variable "group_billing_admins" {
-  type = string
+variable "function_entry_point" {
+  type    = string
+  default = "watchdogNotifier"
 }
 
 # You can look this up via:
@@ -89,20 +87,25 @@ variable "x_auth_token" {
   sensitive = true
 }
 
-variable "function_name" {
-  type    = string
-  default = "watchdog-notifications"
-}
-
-variable "function_entry_point" {
-  type    = string
-  default = "watchdogNotifier"
-}
-
 # Webhook URL to send monitoring alerts from within GCP Monitoring
 # You can find this URL in Victorops by going to "Integrations" -> "Stackdriver".
 # The routing key can be found under "Settings" -> "Routing Keys"
 variable "victorops_webhook_url" {
   type      = string
   sensitive = true
+}
+
+# Used to impersonate our Terraform service account in the Google provider
+variable "terraform_service_account" {
+  type        = string
+  description = "Service account of our Terraform GCP Project which can be impersonated to create and destroy resources in this project"
+  default     = "org-terraform@mento-terraform-seed-ffac.iam.gserviceaccount.com"
+}
+
+# For consistency we also keep this variable in here, although it's not used in the Terraform code (only in the shell scripts)
+# trunk-ignore(tflint/terraform_unused_declarations)
+variable "terraform_seed_project_id" {
+  type        = string
+  description = "The GCP Project ID of the Terraform Seed Project housing the terraform state of all projects"
+  default     = "mento-terraform-seed-ffac"
 }
