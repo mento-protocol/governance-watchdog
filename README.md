@@ -130,7 +130,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 ## Running and testing the Cloud Function locally
 
 - `npm install`
-- `npm dev` to start a local cloud function with hot-reload via nodemon
+- `npm run dev` to start a local cloud function with hot-reload via nodemon
 - `npm test` to call the local cloud function with a mocked payload, this will send a real Discord message into the channel belonging to the configured Discord Webhook:
 
 ## Testing the Deployed Cloud Function
