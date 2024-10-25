@@ -16,6 +16,7 @@ get_function_logs() {
 	# Fetch raw logs
 	raw_logs=$(gcloud functions logs read "${function_name}" \
 		--region "${region}" \
+		--project "${project_id}" \
 		--format json \
 		--limit 50 \
 		--sort-by TIME_UTC)
