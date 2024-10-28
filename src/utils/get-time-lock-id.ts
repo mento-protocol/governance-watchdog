@@ -15,7 +15,7 @@ export default function getProposalTimeLockId(
   event: ProposalCreatedEvent,
 ): string {
   const { targets, values, calldatas, description } = event.args;
-  const descriptionHash = keccak256(Buffer.from(description));
+  const descriptionHash = keccak256(new Uint8Array(Buffer.from(description)));
 
   return keccak256(
     encodeAbiParameters(
