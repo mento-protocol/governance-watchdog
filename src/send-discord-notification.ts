@@ -1,4 +1,4 @@
-import { EmbedBuilder, WebhookClient } from "discord.js";
+import { EmbedBuilder, hyperlink, WebhookClient } from "discord.js";
 import config from "./config";
 import getSecret from "./get-secret.js";
 import type { ProposalCreatedEvent } from "./types";
@@ -12,12 +12,17 @@ export default async function sendDiscordNotification(
     title: string;
   };
 
+  const proposalLink = `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`;
+
   const message = new EmbedBuilder()
     .setTitle(title)
-    .setDescription("Please review the full proposal in governance.mento.org")
+    .setDescription(
+      "Please review the full proposal in " +
+        hyperlink("governance.mento.org", proposalLink),
+    )
     .addFields({
       name: "Proposal Link",
-      value: `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`,
+      value: proposalLink,
     })
     .addFields({
       name: "Proposer",
