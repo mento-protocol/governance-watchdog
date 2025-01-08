@@ -10,9 +10,8 @@ export default async function sendTelegramNotification(
   const botToken = await getSecret(config.TELEGRAM_BOT_TOKEN_SECRET_ID);
   const botUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-  const { title, description } = JSON.parse(event.args.description) as {
+  const { title } = JSON.parse(event.args.description) as {
     title: string;
-    description: string;
   };
   const msgData = {
     Title: title,
@@ -21,7 +20,7 @@ export default async function sendTelegramNotification(
     Event: event.eventName,
     Transaction: `https://celoscan.io/tx/${txHash}`,
     "Timelock ID": timelockId,
-    Description: description,
+    Description: "Please review the full proposal in governance.mento.org",
   };
 
   const formattedMessage = createFormattedMessage(msgData);
