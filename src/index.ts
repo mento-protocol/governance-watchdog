@@ -34,17 +34,32 @@ export const watchdogNotifier: HttpFunction = async (
         case EventType.ProposalCreated:
           assert(parsedEvent.timelockId, "Timelock ID is missing");
 
-          await sendDiscordNotification(
-            parsedEvent.event,
-            parsedEvent.timelockId,
-            parsedEvent.txHash,
+          console.info(
+            "ProposalCreated event found at block",
+            parsedEvent.block,
           );
 
-          await sendTelegramNotification(
-            parsedEvent.event,
-            parsedEvent.timelockId,
-            parsedEvent.txHash,
-          );
+          try {
+            console.info("Sending discord notification...");
+            await sendDiscordNotification(
+              parsedEvent.event,
+              parsedEvent.timelockId,
+              parsedEvent.txHash,
+            );
+          } catch (error) {
+            console.error("Failed to send Discord notification:", error);
+          }
+
+          try {
+            console.info("Sending telegram notification...");
+            await sendTelegramNotification(
+              parsedEvent.event,
+              parsedEvent.timelockId,
+              parsedEvent.txHash,
+            );
+          } catch (error) {
+            console.error("Failed to send Telegram notification:", error);
+          }
 
           break;
 

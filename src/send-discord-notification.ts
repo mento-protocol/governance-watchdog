@@ -8,14 +8,13 @@ export default async function sendDiscordNotification(
   timelockId: string,
   txHash: string,
 ) {
-  const { title, description } = JSON.parse(event.args.description) as {
+  const { title } = JSON.parse(event.args.description) as {
     title: string;
-    description: string;
   };
 
   const message = new EmbedBuilder()
     .setTitle(title)
-    .setDescription(description)
+    .setDescription("Please review the full proposal in governance.mento.org")
     .addFields({
       name: "Proposal Link",
       value: `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`,
