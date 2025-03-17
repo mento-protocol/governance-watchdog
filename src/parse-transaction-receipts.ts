@@ -6,10 +6,17 @@ import { decodeEventLog } from "viem";
 // Internal
 import GovernorABI from "./governor-abi.js";
 import SortedOraclesABI from "./sorted-oracles-abi.js";
-import { EventType, HealthCheckEvent, ProposalCreatedEvent } from "./types.js";
+import TimelockControllerABI from "./timelock-controller-abi.js";
+import {
+  CallScheduledEvent,
+  EventType,
+  HealthCheckEvent,
+  ProposalCreatedEvent,
+} from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
+import isCallScheduledEvent from "./utils/is-call-scheduled-event.js";
 import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
@@ -20,8 +27,8 @@ import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 export default function parseTransactionReceipts(
   matchedTransactionReceipts: unknown,
 ): {
-  block?: number;
-  event: ProposalCreatedEvent | HealthCheckEvent;
+  block: number;
+  event: ProposalCreatedEvent | HealthCheckEvent | CallScheduledEvent;
   timelockId?: string;
   txHash: string;
 }[] {
@@ -74,9 +81,10 @@ export default function parseTransactionReceipts(
           assert(isProposalCreatedEvent(event));
 
           result.push({
+            block: Number(receipt.blockNumber),
             event,
-            timelockId: getProposaltimelockId(event),
             txHash: log.transactionHash,
+            timelockId: getProposaltimelockId(event),
           });
           break;
         }
@@ -97,6 +105,27 @@ export default function parseTransactionReceipts(
             block: Number(receipt.blockNumber),
             event,
             txHash: log.transactionHash,
+          });
+          break;
+        }
+
+        case EventType.CallScheduled: {
+          const event = decodeEventLog({
+            abi: TimelockControllerABI,
+            data: log.data as `0x${string}`,
+            topics: log.topics as [
+              signature: `0x${string}`,
+              ...args: `0x${string}`[],
+            ],
+          });
+
+          assert(isCallScheduledEvent(event));
+
+          result.push({
+            block: Number(receipt.blockNumber),
+            event,
+            txHash: log.transactionHash,
+            timelockId: event.args.id,
           });
           break;
         }

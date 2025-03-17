@@ -30,6 +30,7 @@ export enum EventType {
   Unknown = "Unknown",
   ProposalCreated = "ProposalCreated",
   MedianUpdated = "MedianUpdated",
+  CallScheduled = "CallScheduled",
 }
 
 export interface ProposalCreatedEvent {
@@ -53,5 +54,18 @@ export interface HealthCheckEvent {
   args: {
     token: `0x${string}`;
     value: bigint;
+  };
+}
+
+export interface CallScheduledEvent {
+  eventName: EventType.CallScheduled;
+  args: {
+    id: `0x${string}`;
+    index: bigint;
+    target: `0x${string}`;
+    value: bigint;
+    data: `0x${string}`;
+    predecessor: `0x${string}`;
+    delay: bigint;
   };
 }
