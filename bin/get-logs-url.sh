@@ -9,7 +9,7 @@ get_function_logs_url() {
 	script_dir=$(dirname "$0")
 	source "${script_dir}/get-project-vars.sh"
 
-	logs_url="https://console.cloud.google.com/functions/details/${region}/${function_name}?project=${project_id}&tab=logs "
+	logs_url="https://console.cloud.google.com/run/detail/${region}/${function_name}/logs?project=${project_id}"
 	printf '\n\033[1m%s\033[0m\n' "${logs_url}"
 }
 
