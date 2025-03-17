@@ -1,6 +1,7 @@
 import config from "./config.js";
 import getSecret from "./get-secret.js";
 import { ProposalCreatedEvent } from "./types";
+import getNotificationChannels from "./utils/get-notification-channels";
 
 export default async function sendTelegramNotification(
   event: ProposalCreatedEvent,
@@ -24,8 +25,10 @@ export default async function sendTelegramNotification(
   };
 
   const formattedMessage = createFormattedMessage(msgData);
+  const { telegramChatId } = getNotificationChannels();
+
   const payload = {
-    chat_id: config.TELEGRAM_CHAT_ID,
+    chat_id: telegramChatId,
     text: formattedMessage,
     parse_mode: "HTML",
   };

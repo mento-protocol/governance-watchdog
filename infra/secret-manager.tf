@@ -15,6 +15,24 @@ resource "google_secret_manager_secret_version" "discord_webhook_url" {
   secret_data = var.discord_webhook_url
 }
 
+
+# Creates a new secret for the Test Discord webhook URL.
+# Terraform will try to look up the webhook URL from terraform.tfvars,
+# and if it can't find it locally it will prompt the user to enter it manually.
+resource "google_secret_manager_secret" "discord_test_webhook_url" {
+  project   = module.governance_watchdog.project_id
+  secret_id = var.discord_test_webhook_url_secret_id
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "discord_test_webhook_url" {
+  secret      = google_secret_manager_secret.discord_test_webhook_url.id
+  secret_data = var.discord_test_webhook_url
+}
+
 # Creates a new secret for the Telegram Bot Token.
 resource "google_secret_manager_secret" "telegram_bot_token" {
   project   = module.governance_watchdog.project_id

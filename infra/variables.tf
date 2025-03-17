@@ -36,6 +36,11 @@ variable "discord_webhook_url_secret_id" {
   default = "discord-webhook-url"
 }
 
+variable "discord_test_webhook_url_secret_id" {
+  type    = string
+  default = "discord-test-webhook-url"
+}
+
 # You can look this up either on the Discord Channel settings, or fetch it from Secret Manager via:
 #  `gcloud secrets versions access latest --secret discord-webhook-url`
 variable "discord_webhook_url" {
@@ -43,8 +48,20 @@ variable "discord_webhook_url" {
   sensitive = true
 }
 
+# You can look this up either on the Discord Channel settings, or fetch it from Secret Manager via:
+#  `gcloud secrets versions access latest --secret discord-test-webhook-url`
+variable "discord_test_webhook_url" {
+  type      = string
+  sensitive = true
+}
+
 # You can look this up by inviting @MissRose_bot to the telegram group and then calling the `/id` command (please remove the bot after you're done)
 variable "telegram_chat_id" {
+  type = string
+}
+
+# You can look this up by inviting @MissRose_bot to the telegram group and then calling the `/id` command (please remove the bot after you're done)
+variable "telegram_test_chat_id" {
   type = string
 }
 

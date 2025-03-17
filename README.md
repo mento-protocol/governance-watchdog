@@ -98,6 +98,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    telegram_chat_id     = "<telegram-chat-id>"
 
    # The Telegram bot used to receive and post notifications
+   # NOTE: Make sure to also invite @MentoGovBot to the TG chat you want to post notifications to!
    # Get it via `gcloud secrets versions access latest --secret telegram-bot-token`
    telegram_bot_token   = "<telegram-bot-token>"
 
