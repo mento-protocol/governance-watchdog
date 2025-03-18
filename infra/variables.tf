@@ -26,7 +26,7 @@ variable "function_name" {
 
 variable "function_entry_point" {
   type    = string
-  default = "watchdogNotifier"
+  default = "governanceWatchdog"
 }
 
 # You can look this up via:

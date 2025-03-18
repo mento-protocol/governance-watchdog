@@ -10,7 +10,7 @@ import sendTelegramNotification from "./send-telegram-notification";
 import { EventType } from "./types.js";
 import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
 
-export const watchdogNotifier: HttpFunction = async (
+export const governanceWatchdog: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
