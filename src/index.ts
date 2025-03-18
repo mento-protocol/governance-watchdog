@@ -4,9 +4,10 @@ import type {
   Response,
 } from "@google-cloud/functions-framework";
 import assert from "assert/strict";
+import handleCallScheduledEvent from "./call-scheduled";
+import handleHealthCheckEvent from "./health-check";
 import parseTransactionReceipts from "./parse-transaction-receipts";
-import sendDiscordNotification from "./send-discord-notification";
-import sendTelegramNotification from "./send-telegram-notification";
+import handleProposalCreatedEvent from "./proposal-created";
 import { EventType } from "./types.js";
 import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
 
@@ -16,56 +17,36 @@ export const governanceWatchdog: HttpFunction = async (
 ) => {
   const isProduction = process.env.NODE_ENV !== "development";
   try {
+    /**
+     * We only want to accept requests in production that
+     *  1) Come from Quicknode
+     *  2) or have an auth token (which we use for testing in production)
+     */
     if (isProduction) {
-      const isAuthorized =
-        (await isFromQuicknode(req)) || (await hasAuthToken(req));
-
-      if (!isAuthorized) {
-        console.error("Origin validation failed for request.");
+      if (await isFromQuicknode(req)) {
+        console.info("Received QuickAlert:", req.body);
+      } else if (await hasAuthToken(req)) {
+        console.info("Received Call with auth token:", req.body);
+      } else {
+        console.error("Unauthorized. Request origin validation failed.");
         res.status(401).send("Unauthorized");
         return;
       }
     }
 
-    const parsedEvents = parseTransactionReceipts(req.body);
-
-    for (const parsedEvent of parsedEvents) {
-      switch (parsedEvent.event.eventName) {
+    for (const quickAlert of parseTransactionReceipts(req.body)) {
+      switch (quickAlert.event.eventName) {
         case EventType.ProposalCreated:
-          assert(parsedEvent.timelockId, "Timelock ID is missing");
-
-          console.info(
-            "ProposalCreated event found at block",
-            parsedEvent.block,
-          );
-
-          try {
-            console.info("Sending discord notification...");
-            await sendDiscordNotification(
-              parsedEvent.event,
-              parsedEvent.timelockId,
-              parsedEvent.txHash,
-            );
-          } catch (error) {
-            console.error("Failed to send Discord notification:", error);
-          }
-
-          try {
-            console.info("Sending telegram notification...");
-            await sendTelegramNotification(
-              parsedEvent.event,
-              parsedEvent.timelockId,
-              parsedEvent.txHash,
-            );
-          } catch (error) {
-            console.error("Failed to send Telegram notification:", error);
-          }
-
+          await handleProposalCreatedEvent(quickAlert);
           break;
 
+        case EventType.CallScheduled:
+          await handleCallScheduledEvent(quickAlert);
+          break;
+
+        // Acts a health check for the service, as it's a frequently emitted event
         case EventType.MedianUpdated:
-          // Acts a health check/heartbeat for the service, as it's a frequently emitted event
-          console.info("[HealthCheck]: Block", parsedEvent.block);
+          handleHealthCheckEvent(quickAlert);
           break;
 
         default:

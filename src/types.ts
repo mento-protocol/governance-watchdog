@@ -69,3 +69,10 @@ export interface CallScheduledEvent {
     delay: bigint;
   };
 }
+
+export interface ParsedQuickAlert {
+  blockNumber: number;
+  event: CallScheduledEvent | ProposalCreatedEvent | HealthCheckEvent;
+  timelockId?: string;
+  txHash: string;
+}

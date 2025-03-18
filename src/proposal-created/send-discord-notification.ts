@@ -1,7 +1,7 @@
 import { EmbedBuilder, hyperlink, WebhookClient } from "discord.js";
-import getSecret from "./get-secret.js";
-import type { ProposalCreatedEvent } from "./types";
-import getNotificationChannels from "./utils/get-notification-channels";
+import getSecret from "../get-secret.js";
+import type { ProposalCreatedEvent } from "../types.js";
+import getNotificationChannels from "../utils/get-notification-channels.js";
 
 export default async function sendDiscordNotification(
   event: ProposalCreatedEvent,
@@ -22,20 +22,19 @@ export default async function sendDiscordNotification(
     )
     .addFields({
       name: "Proposal Link",
-      value: proposalLink,
+      value: `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`,
     })
     .addFields({
       name: "Proposer",
       value: `https://celoscan.io/address/${event.args.proposer}`,
     })
-    .addFields({ name: "Event", value: event.eventName })
-    .addFields({
-      name: "Transaction",
-      value: `https://celoscan.io/tx/${txHash}`,
-    })
     .addFields({
       name: "Timelock ID",
       value: timelockId,
+    })
+    .addFields({
+      name: "Transaction",
+      value: `https://celoscan.io/tx/${txHash}`,
     })
     .setColor(0xa6e5f6);
 

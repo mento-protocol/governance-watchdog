@@ -16,7 +16,9 @@
         "logIndex": "0x0",
         "removed": false,
         "topics": [
-          "0x4cf4410cc57040e44862ef0f45f3dd5a5e02db8eb8add648d4b0e236f1d07dca"
+          "0x4cf4410cc57040e44862ef0f45f3dd5a5e02db8eb8add648d4b0e236f1d07dca",
+          "0x9da9be725d1f0b0354f5fa59f438b7ae0936d7bb2a53092b2fc64b66f85a2ee0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000"
         ],
         "transactionHash": "0xc26d990bbe1474e9d97c60726c8e15c40c3498adcb5cc8237916e6b0e94719ad",
         "transactionIndex": "0x1"

@@ -7,12 +7,7 @@ import { decodeEventLog } from "viem";
 import GovernorABI from "./governor-abi.js";
 import SortedOraclesABI from "./sorted-oracles-abi.js";
 import TimelockControllerABI from "./timelock-controller-abi.js";
-import {
-  CallScheduledEvent,
-  EventType,
-  HealthCheckEvent,
-  ProposalCreatedEvent,
-} from "./types.js";
+import { EventType, ParsedQuickAlert } from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
@@ -26,12 +21,7 @@ import isTransactionReceipt from "./utils/is-transaction-receipt.js";
  */
 export default function parseTransactionReceipts(
   matchedTransactionReceipts: unknown,
-): {
-  block: number;
-  event: ProposalCreatedEvent | HealthCheckEvent | CallScheduledEvent;
-  timelockId?: string;
-  txHash: string;
-}[] {
+): ParsedQuickAlert[] {
   const result = [];
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
@@ -61,6 +51,8 @@ export default function parseTransactionReceipts(
 
       const eventSignature = log.topics[0];
       const eventType = getEventByTopic(eventSignature);
+      const blockNumber = Number(receipt.blockNumber);
+      const txHash = log.transactionHash;
 
       switch (eventType) {
         case EventType.Unknown:
@@ -81,9 +73,9 @@ export default function parseTransactionReceipts(
           assert(isProposalCreatedEvent(event));
 
           result.push({
-            block: Number(receipt.blockNumber),
+            blockNumber,
             event,
-            txHash: log.transactionHash,
+            txHash,
             timelockId: getProposaltimelockId(event),
           });
           break;
@@ -102,9 +94,9 @@ export default function parseTransactionReceipts(
           assert(isHealthCheckEvent(event));
 
           result.push({
-            block: Number(receipt.blockNumber),
+            blockNumber,
             event,
-            txHash: log.transactionHash,
+            txHash,
           });
           break;
         }
@@ -122,9 +114,9 @@ export default function parseTransactionReceipts(
           assert(isCallScheduledEvent(event));
 
           result.push({
-            block: Number(receipt.blockNumber),
+            blockNumber,
             event,
-            txHash: log.transactionHash,
+            txHash,
             timelockId: event.args.id,
           });
           break;
