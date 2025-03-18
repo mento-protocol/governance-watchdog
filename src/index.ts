@@ -7,6 +7,7 @@ import assert from "assert/strict";
 import handleHealthCheckEvent from "./health-check";
 import parseTransactionReceipts from "./parse-transaction-receipts";
 import handleProposalCreatedEvent from "./proposal-created";
+import handleProposalExecutedEvent from "./proposal-executed";
 import handleProposalQueuedEvent from "./proposal-queued";
 import { EventType } from "./types.js";
 import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
@@ -42,6 +43,10 @@ export const governanceWatchdog: HttpFunction = async (
 
         case EventType.ProposalQueued:
           await handleProposalQueuedEvent(quickAlert);
+          break;
+
+        case EventType.ProposalExecuted:
+          await handleProposalExecutedEvent(quickAlert);
           break;
 
         // Acts a health check for the service, as it's a frequently emitted event

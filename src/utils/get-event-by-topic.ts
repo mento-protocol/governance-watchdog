@@ -14,6 +14,10 @@ export default function getEventByTopic(topic: string): EventType {
     case "0x9a2e42fd6722813d69113e7d0079d3d940171428df7373df9c7f7617cfda2892":
       return EventType.ProposalQueued;
 
+    // keccak256(abi.encodePacked("ProposalExecuted(uint256)"))
+    case "0x712ae1383f79ac853f8d882153778e0260ef8f03b504e2866e0593e04d2b291f":
+      return EventType.ProposalExecuted;
+
     default:
       return EventType.Unknown;
   }

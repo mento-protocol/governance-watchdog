@@ -12,6 +12,7 @@ import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
 import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
+import isProposalExecutedEvent from "./utils/is-proposal-executed-event.js";
 import isProposalQueuedEvent from "./utils/is-proposal-queued-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
@@ -111,6 +112,26 @@ export default function parseTransactionReceipts(
           });
 
           assert(isProposalQueuedEvent(event));
+
+          result.push({
+            blockNumber,
+            event,
+            txHash,
+          });
+          break;
+        }
+
+        case EventType.ProposalExecuted: {
+          const event = decodeEventLog({
+            abi: GovernorABI,
+            data: log.data as `0x${string}`,
+            topics: log.topics as [
+              signature: `0x${string}`,
+              ...args: `0x${string}`[],
+            ],
+          });
+
+          assert(isProposalExecutedEvent(event));
 
           result.push({
             blockNumber,

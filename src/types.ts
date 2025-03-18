@@ -29,6 +29,7 @@ export interface LogsEntity {
 export enum EventType {
   ProposalCreated = "ProposalCreated",
   ProposalQueued = "ProposalQueued",
+  ProposalExecuted = "ProposalExecuted",
   MedianUpdated = "MedianUpdated",
   Unknown = "Unknown",
 }
@@ -65,9 +66,20 @@ export interface ProposalQueuedEvent {
   };
 }
 
+export interface ProposalExecutedEvent {
+  eventName: EventType.ProposalExecuted;
+  args: {
+    proposalId: bigint;
+  };
+}
+
 export interface QuickAlert {
   blockNumber: number;
-  event: ProposalCreatedEvent | ProposalQueuedEvent | HealthCheckEvent;
+  event:
+    | ProposalCreatedEvent
+    | ProposalQueuedEvent
+    | ProposalExecutedEvent
+    | HealthCheckEvent;
   timelockId?: string;
   txHash: string;
 }
