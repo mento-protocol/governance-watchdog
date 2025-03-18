@@ -1,19 +1,23 @@
-import { EventType, ParsedQuickAlert } from "../types.js";
-import sendDiscordNotification from "./send-discord-notification.js";
-import sendTelegramNotification from "./send-telegram-notification.js";
+import sendDiscordNotification from "../send-discord-notification.js";
+import sendTelegramNotification from "../send-telegram-notification.js";
+import { EventType, QuickAlert } from "../types.js";
+import composeDiscordMessage from "./compose-discord-message.js";
+import composeTelegramMessage from "./compose-telegram-message.js";
 
 export default async function handleProposalQueuedEvent(
-  quickAlert: ParsedQuickAlert,
+  quickAlert: QuickAlert,
 ): Promise<void> {
-  if (quickAlert.event.eventName !== EventType.ProposalQueued) {
+  const { event, blockNumber } = quickAlert;
+  if (event.eventName !== EventType.ProposalQueued) {
     throw new Error("Expected ProposalQueued event");
   }
 
-  console.log("ProposalQueued event from block", quickAlert.blockNumber);
+  console.log("ProposalQueued event from block", blockNumber);
 
   try {
     console.log("Sending Discord notification for ProposalQueued event...");
-    await sendDiscordNotification(quickAlert.event, quickAlert.txHash);
+    const discordMsg = composeDiscordMessage(quickAlert);
+    await sendDiscordNotification(discordMsg.content, discordMsg.embed);
     console.log(
       "Successfully sent Discord notification for ProposalQueued event",
     );
@@ -26,7 +30,8 @@ export default async function handleProposalQueuedEvent(
 
   try {
     console.info("Sending Telegram notification for ProposalQueued event...");
-    await sendTelegramNotification(quickAlert.event, quickAlert.txHash);
+    const msgData = composeTelegramMessage(quickAlert);
+    await sendTelegramNotification("⏱️ PROPOSAL QUEUED ⏱️", msgData);
     console.log(
       "Successfully sent Telegram notification for ProposalQueued event",
     );

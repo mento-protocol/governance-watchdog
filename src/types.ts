@@ -65,7 +65,7 @@ export interface ProposalQueuedEvent {
   };
 }
 
-export interface ParsedQuickAlert {
+export interface QuickAlert {
   blockNumber: number;
   event: ProposalCreatedEvent | ProposalQueuedEvent | HealthCheckEvent;
   timelockId?: string;

@@ -1,25 +1,28 @@
 import assert from "assert/strict";
-import { EventType, ParsedQuickAlert } from "../types.js";
-import sendDiscordNotification from "./send-discord-notification.js";
-import sendTelegramNotification from "./send-telegram-notification.js";
+import sendDiscordNotification from "../send-discord-notification.js";
+import sendTelegramNotification from "../send-telegram-notification.js";
+import { EventType, QuickAlert } from "../types.js";
+import composeDiscordMessage from "./compose-discord-message.js";
+import composeTelegramMessage from "./compose-telegram-message.js";
 
 export default async function handleProposalCreatedEvent(
-  quickAlert: ParsedQuickAlert,
+  quickAlert: QuickAlert,
 ): Promise<void> {
-  if (quickAlert.event.eventName !== EventType.ProposalCreated) {
+  const { event, timelockId, blockNumber } = quickAlert;
+  if (event.eventName !== EventType.ProposalCreated) {
     throw new Error("Expected ProposalCreated event");
   }
 
-  assert(quickAlert.timelockId, "Timelock ID is missing");
+  assert(timelockId, "Timelock ID is missing");
 
-  console.info("ProposalCreated event found at block", quickAlert.blockNumber);
+  console.info("ProposalCreated event found at block", blockNumber);
 
   try {
     console.info("Sending discord notification for ProposalCreated event...");
-    await sendDiscordNotification(
-      quickAlert.event,
-      quickAlert.timelockId,
-      quickAlert.txHash,
+    const discordMsg = composeDiscordMessage(quickAlert);
+    await sendDiscordNotification(discordMsg.content, discordMsg.embed);
+    console.info(
+      "Successfully sent Discord notification for ProposalCreated event",
     );
   } catch (error) {
     console.error(
@@ -30,10 +33,10 @@ export default async function handleProposalCreatedEvent(
 
   try {
     console.info("Sending telegram notification for ProposalCreated event...");
-    await sendTelegramNotification(
-      quickAlert.event,
-      quickAlert.timelockId,
-      quickAlert.txHash,
+    const msgData = composeTelegramMessage(quickAlert);
+    await sendTelegramNotification("🚨 NEW GOVERNANCE PROPOSAL 🚨", msgData);
+    console.info(
+      "Successfully sent Telegram notification for ProposalCreated event",
     );
   } catch (error) {
     console.error(

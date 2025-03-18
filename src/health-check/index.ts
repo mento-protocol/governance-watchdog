@@ -1,7 +1,7 @@
 import assert from "assert";
-import { ParsedQuickAlert } from "../types";
+import { QuickAlert } from "../types";
 
-export default function handleHealthCheckEvent(quickAlert: ParsedQuickAlert) {
+export default function handleHealthCheckEvent(quickAlert: QuickAlert) {
   assert(
     quickAlert.blockNumber,
     "Block number is missing from MedianUpdated health check event",

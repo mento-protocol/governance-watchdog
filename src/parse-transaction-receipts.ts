@@ -6,7 +6,7 @@ import { decodeEventLog } from "viem";
 // Internal
 import GovernorABI from "./governor-abi.js";
 import SortedOraclesABI from "./sorted-oracles-abi.js";
-import { EventType, ParsedQuickAlert } from "./types.js";
+import { EventType, QuickAlert } from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
@@ -20,7 +20,7 @@ import isTransactionReceipt from "./utils/is-transaction-receipt.js";
  */
 export default function parseTransactionReceipts(
   matchedTransactionReceipts: unknown,
-): ParsedQuickAlert[] {
+): QuickAlert[] {
   const result = [];
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
