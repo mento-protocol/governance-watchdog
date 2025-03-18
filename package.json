@@ -11,7 +11,7 @@
     "deploy": "terraform -chdir=infra apply",
     "deploy:function": "./bin/deploy-via-gcloud.sh",
     "destroy": "terraform -chdir=infra destroy",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'npm run build && npm run start'",
+    "dev": "nodemon --ext ts --ignore dist --exec \"npm run start\"",
     "gcp-build": "npm run build",
     "generate:env": "terraform -chdir=infra apply -target=local_file.env_file",
     "logs": "./bin/get-logs.sh",
