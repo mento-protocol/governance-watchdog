@@ -62,6 +62,20 @@ resource "quicknode_notification" "proposal_canceled" {
   enabled         = true
 }
 
+# Creates a new QuickAlert event listener for `TimelockChange` events on our Governor contract on Celo Mainnet
+# This event listener will then call the QuickNode destination below.
+resource "quicknode_notification" "timelock_change" {
+  name    = "Timelock Change"
+  network = "celo-mainnet"
+
+  # Watches for new TimelockChange events on the Governor contract https://celoscan.io/address/0x47036d78bB3169b4F5560dD77BF93f4412A59852
+  # Decoded version: `tx_logs_address == '0x47036d78bB3169b4F5560dD77BF93f4412A59852' && tx_logs_topic0 == '0x08f74ea46ef7894f65eabfb5e6e695de773a000b47c529ab559178069b226401'`
+  # base64-encoded expression => https://www.quicknode.com/docs/quickalerts/rest-api/notifications/quickalerts-rest-create-notification
+  expression      = "dHhfbG9nc19hZGRyZXNzID09ICcweDQ3MDM2ZDc4YkIzMTY5YjRGNTU2MGRENzdCRjkzZjQ0MTJBNTk4NTInICYmIHR4X2xvZ3NfdG9waWMwID09ICcweDA4Zjc0ZWE0NmVmNzg5NGY2NWVhYmZiNWU2ZTY5NWRlNzczYTAwMGI0N2M1MjlhYjU1OTE3ODA2OWIyMjY0MDEn"
+  destination_ids = [resource.quicknode_destination.destination.id]
+  enabled         = true
+}
+
 # Creates a new QuickAlert event listener for `MedianUpdated` events on our SortedOracles contract,
 # which is used as a health check event to ensure quicknode alerts are firing.
 resource "quicknode_notification" "healthcheck" {

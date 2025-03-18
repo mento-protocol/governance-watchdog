@@ -10,6 +10,7 @@ import handleProposalCanceledEvent from "./proposal-canceled";
 import handleProposalCreatedEvent from "./proposal-created";
 import handleProposalExecutedEvent from "./proposal-executed";
 import handleProposalQueuedEvent from "./proposal-queued";
+import handleTimelockChangeEvent from "./timelock-change";
 import { EventType } from "./types.js";
 import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
 
@@ -52,6 +53,10 @@ export const governanceWatchdog: HttpFunction = async (
 
         case EventType.ProposalCanceled:
           await handleProposalCanceledEvent(quickAlert);
+          break;
+
+        case EventType.TimelockChange:
+          await handleTimelockChangeEvent(quickAlert);
           break;
 
         // Acts a health check for the service, as it's a frequently emitted event

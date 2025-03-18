@@ -11,6 +11,7 @@ import isProposalCanceledEvent from "./proposal-canceled/is-proposal-canceled-ev
 import isProposalCreatedEvent from "./proposal-created/is-proposal-created-event.js";
 import isProposalExecutedEvent from "./proposal-executed/is-proposal-executed-event.js";
 import isProposalQueuedEvent from "./proposal-queued/is-proposal-queued-event.js";
+import isTimelockChangeEvent from "./timelock-change/is-timelock-change-event.js";
 import { EventType, QuickAlert } from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
@@ -153,6 +154,26 @@ export default function parseTransactionReceipts(
           });
 
           assert(isProposalCanceledEvent(event));
+
+          result.push({
+            blockNumber,
+            event,
+            txHash,
+          });
+          break;
+        }
+
+        case EventType.TimelockChange: {
+          const event = decodeEventLog({
+            abi: GovernorABI,
+            data: log.data as `0x${string}`,
+            topics: log.topics as [
+              signature: `0x${string}`,
+              ...args: `0x${string}`[],
+            ],
+          });
+
+          assert(isTimelockChangeEvent(event));
 
           result.push({
             blockNumber,

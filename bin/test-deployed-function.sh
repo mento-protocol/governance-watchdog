@@ -5,7 +5,7 @@ set -u          # Treat unset variables as an error when substituting
 
 # Check if an argument was provided
 if [[ $# -eq 0 ]]; then
-	echo "Error: Please provide a test type (ProposalCreated, ProposalQueued, ProposalExecuted, ProposalCanceled, or healthcheck)"
+	echo "Error: Please provide a test type (ProposalCreated, ProposalQueued, ProposalExecuted, ProposalCanceled, TimelockChange, or healthcheck)"
 	exit 1
 fi
 
@@ -25,11 +25,14 @@ case ${TEST_TYPE} in
 "ProposalCanceled")
 	FIXTURE_FILE="src/proposal-canceled/fixture.json"
 	;;
+"TimelockChange")
+	FIXTURE_FILE="src/timelock-change/fixture.json"
+	;;
 "healthcheck")
 	FIXTURE_FILE="src/health-check/fixture.json"
 	;;
 *)
-	echo "Error: Invalid test type. Must be one of: ProposalCreated, ProposalQueued, ProposalExecuted, ProposalCanceled, healthcheck"
+	echo "Error: Invalid test type. Must be one of: ProposalCreated, ProposalQueued, ProposalExecuted, ProposalCanceled, TimelockChange, healthcheck"
 	exit 1
 	;;
 esac

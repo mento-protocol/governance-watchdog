@@ -22,6 +22,10 @@ export default function getEventByTopic(topic: string): EventType {
     case "0x789cf55be980739dad1d0699b93b58e806b51c9d96619bfa8fe0a28abaa7b30c":
       return EventType.ProposalCanceled;
 
+    // keccak256(abi.encodePacked("TimelockChange(address,address)"))
+    case "0x08f74ea46ef7894f65eabfb5e6e695de773a000b47c529ab559178069b226401":
+      return EventType.TimelockChange;
+
     default:
       return EventType.Unknown;
   }
