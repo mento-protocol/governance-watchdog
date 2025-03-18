@@ -4,7 +4,7 @@ set -o pipefail # Ensure piped commands propagate exit codes properly
 set -u          # Treat unset variables as an error when substituting
 
 # Check if an argument was provided
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
 	echo "Error: Please provide a test type (ProposalCreated, ProposalQueued, or healthcheck)"
 	exit 1
 fi
@@ -12,7 +12,7 @@ fi
 TEST_TYPE=$1
 
 # Map the test type to the corresponding fixture file
-case $TEST_TYPE in
+case ${TEST_TYPE} in
 "ProposalCreated")
 	FIXTURE_FILE="src/proposal-created/fixture.json"
 	;;
