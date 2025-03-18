@@ -18,9 +18,10 @@
     "logs:url": "./bin/get-logs-url.sh",
     "prestart": "npm run build",
     "start": "NODE_ENV=development functions-framework --target=governanceWatchdog",
-    "test": "npm run test:local",
-    "test:healthcheck": "curl -H \"Content-Type: application/json\" -d @src/health-check.fixture.json localhost:8080",
-    "test:local": "curl -H \"Content-Type: application/json\" -d @src/proposal-created.fixture.json localhost:8080",
+    "test": "npm run test:local:ProposalCreated",
+    "test:healthcheck": "curl -H \"Content-Type: application/json\" -d @src/health-check/health-check.fixture.json localhost:8080",
+    "test:local:CallScheduled": "curl -H \"Content-Type: application/json\" -d @src/call-scheduled/call-scheduled.fixture.json localhost:8080",
+    "test:local:ProposalCreated": "curl -H \"Content-Type: application/json\" -d @src/proposal-created/proposal-created.fixture.json localhost:8080",
     "test:prod": "./bin/test-deployed-function.sh",
     "todo": "git ls-files -c --exclude-standard | grep -v \"package.json\" | xargs grep -n -i --color \"TODO:\\|FIXME:\""
   },
