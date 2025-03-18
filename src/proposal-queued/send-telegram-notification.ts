@@ -1,26 +1,23 @@
 import config from "../config.js";
 import getSecret from "../get-secret.js";
-import { CallScheduledEvent } from "../types";
-import getNotificationChannels from "../utils/get-notification-channels";
+import { ProposalQueuedEvent } from "../types.js";
+import getNotificationChannels from "../utils/get-notification-channels.js";
 
-export default async function sendTelegramNotificationCallScheduled(
-  event: CallScheduledEvent,
-  timelockId: string,
+export default async function sendTelegramNotification(
+  event: ProposalQueuedEvent,
   txHash: string,
 ) {
   const botToken = await getSecret(config.TELEGRAM_BOT_TOKEN_SECRET_ID);
   const botUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-  const delayInDays = (Number(event.args.delay) / 86400).toFixed(2);
+  const executionTime = new Date(Number(event.args.eta) * 1000).toUTCString();
 
   const msgData = {
-    "Timelock ID": timelockId,
-    Target: `https://celoscan.io/address/${event.args.target}`,
-    Value: event.args.value.toString(),
-    Delay: `${delayInDays} days (${event.args.delay.toString()} seconds)`,
-    Transaction: `https://celoscan.io/tx/${txHash}`,
     Description:
-      "A proposal has been queued in the Timelock Controller and is awaiting execution.",
+      "A proposal has been queued and is awaiting execution. Please review the proposal and discuss with your fellow watchdogs whether it should be vetoed.",
+    "Proposal Link": `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`,
+    "Execution Time": executionTime,
+    "Queue Transaction": `https://celoscan.io/tx/${txHash}`,
   };
 
   const formattedMessage = createFormattedMessage(msgData);
@@ -46,9 +43,8 @@ export default async function sendTelegramNotificationCallScheduled(
   }
 }
 
-// Create a formatted message
-function createFormattedMessage(msgData: Record<string, string | number>) {
-  let message = `<b>${escapeHTML("⏱️ PROPOSAL QUEUED IN TIMELOCK ⏱️")}</b>\n\n`;
+function createFormattedMessage(msgData: Record<string, string>): string {
+  let message = `<b>${escapeHTML("⏱️ Proposal Queued ⏱️")}</b>\n\n`;
   for (const [key, value] of Object.entries(msgData)) {
     message += `<b>${escapeHTML(key)}:</b> ${escapeHTML(String(value))}\n\n`;
   }

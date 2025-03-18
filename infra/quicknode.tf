@@ -20,20 +20,19 @@ resource "quicknode_notification" "proposal_created" {
   enabled         = true
 }
 
-# Creates a new QuickAlert event listener for ProposalQueued (actual event name is`CallScheduled`) events on our Governance
-# TimelockController contract on Celo Mainnet https://celoscan.io/address/0x890db8a597940165901372dd7db61c9f246e2147
+# Creates a new QuickAlert event listener for `ProposalQueued` events on our Governor contract on Celo Mainnet
 # This event listener will then call the QuickNode destination below.
 resource "quicknode_notification" "proposal_queued" {
   name    = "Proposal Queued"
   network = "celo-mainnet"
 
-  # Decoded version: `tx_logs_address == '0x890DB8A597940165901372Dd7DB61C9f246e2147' && tx_logs_topic0 == '0x4cf4410cc57040e44862ef0f45f3dd5a5e02db8eb8add648d4b0e236f1d07dca'`
+  # Watches for new ProposalQueued events on the Governor contract https://celoscan.io/address/0x47036d78bB3169b4F5560dD77BF93f4412A59852
+  # Decoded version: `tx_logs_address == '0x47036d78bB3169b4F5560dD77BF93f4412A59852' && tx_logs_topic0 == '0x9a2e42fd6722813d69113e7d0079d3d940171428df7373df9c7f7617cfda2892'`
   # base64-encoded expression => https://www.quicknode.com/docs/quickalerts/rest-api/notifications/quickalerts-rest-create-notification
-  expression      = "dHhfbG9nc19hZGRyZXNzID09ICcweDg5MERCOEE1OTc5NDAxNjU5MDEzNzJEZDdEQjYxQzlmMjQ2ZTIxNDcnICYmIHR4X2xvZ3NfdG9waWMwID09ICcweDRjZjQ0MTBjYzU3MDQwZTQ0ODYyZWYwZjQ1ZjNkZDVhNWUwMmRiOGViOGFkZDY0OGQ0YjBlMjM2ZjFkMDdkY2En"
+  expression      = "dHhfbG9nc19hZGRyZXNzID09ICcweDQ3MDM2ZDc4YkIzMTY5YjRGNTU2MGRENzdCRjkzZjQ0MTJBNTk4NTInICYmIHR4X2xvZ3NfdG9waWMwID09ICcweDlhMmU0MmZkNjcyMjgxM2Q2OTExM2U3ZDAwNzlkM2Q5NDAxNzE0MjhkZjczNzNkZjljN2Y3NjE3Y2ZkYTI4OTIn"
   destination_ids = [resource.quicknode_destination.destination.id]
   enabled         = true
 }
-
 
 # Creates a new QuickAlert event listener for `MedianUpdated` events on our SortedOracles contract,
 # which is used as a health check event to ensure quicknode alerts are firing.
@@ -47,7 +46,7 @@ resource "quicknode_notification" "healthcheck" {
   enabled         = true
 }
 
-# Creates a new QuickAlert destination that forwards all received `ProposalCreated` transaction receipts to our Cloud Function
+# Creates a new QuickAlert destination that forwards all received transaction receipts to our Cloud Function
 resource "quicknode_destination" "destination" {
   name         = "Cloud Function"
   service      = "webhook"

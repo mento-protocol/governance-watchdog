@@ -136,7 +136,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 
 ## Testing the Deployed Cloud Function
 
-You can test the deployed cloud function manually by using the `proposal-created.fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
+You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
 
 ```sh
 npm run test:prod

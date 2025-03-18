@@ -6,14 +6,13 @@ import { decodeEventLog } from "viem";
 // Internal
 import GovernorABI from "./governor-abi.js";
 import SortedOraclesABI from "./sorted-oracles-abi.js";
-import TimelockControllerABI from "./timelock-controller-abi.js";
 import { EventType, ParsedQuickAlert } from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
-import isCallScheduledEvent from "./utils/is-call-scheduled-event.js";
 import isHealthCheckEvent from "./utils/is-health-check-event.js";
 import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
+import isProposalQueuedEvent from "./utils/is-proposal-queued-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
 /**
@@ -101,9 +100,9 @@ export default function parseTransactionReceipts(
           break;
         }
 
-        case EventType.CallScheduled: {
+        case EventType.ProposalQueued: {
           const event = decodeEventLog({
-            abi: TimelockControllerABI,
+            abi: GovernorABI,
             data: log.data as `0x${string}`,
             topics: log.topics as [
               signature: `0x${string}`,
@@ -111,13 +110,12 @@ export default function parseTransactionReceipts(
             ],
           });
 
-          assert(isCallScheduledEvent(event));
+          assert(isProposalQueuedEvent(event));
 
           result.push({
             blockNumber,
             event,
             txHash,
-            timelockId: event.args.id,
           });
           break;
         }
@@ -125,7 +123,7 @@ export default function parseTransactionReceipts(
         default:
           assert(
             false,
-            `Unknown event type. Did you forget to add a new event?`,
+            `Unknown event type from payload: ${JSON.stringify(log)}`,
           );
       }
     }

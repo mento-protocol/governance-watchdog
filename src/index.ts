@@ -4,10 +4,10 @@ import type {
   Response,
 } from "@google-cloud/functions-framework";
 import assert from "assert/strict";
-import handleCallScheduledEvent from "./call-scheduled";
 import handleHealthCheckEvent from "./health-check";
 import parseTransactionReceipts from "./parse-transaction-receipts";
 import handleProposalCreatedEvent from "./proposal-created";
+import handleProposalQueuedEvent from "./proposal-queued";
 import { EventType } from "./types.js";
 import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
 
@@ -40,8 +40,8 @@ export const governanceWatchdog: HttpFunction = async (
           await handleProposalCreatedEvent(quickAlert);
           break;
 
-        case EventType.CallScheduled:
-          await handleCallScheduledEvent(quickAlert);
+        case EventType.ProposalQueued:
+          await handleProposalQueuedEvent(quickAlert);
           break;
 
         // Acts a health check for the service, as it's a frequently emitted event

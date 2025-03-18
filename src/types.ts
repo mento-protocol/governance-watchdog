@@ -27,10 +27,10 @@ export interface LogsEntity {
 }
 
 export enum EventType {
-  Unknown = "Unknown",
   ProposalCreated = "ProposalCreated",
+  ProposalQueued = "ProposalQueued",
   MedianUpdated = "MedianUpdated",
-  CallScheduled = "CallScheduled",
+  Unknown = "Unknown",
 }
 
 export interface ProposalCreatedEvent {
@@ -57,22 +57,17 @@ export interface HealthCheckEvent {
   };
 }
 
-export interface CallScheduledEvent {
-  eventName: EventType.CallScheduled;
+export interface ProposalQueuedEvent {
+  eventName: EventType.ProposalQueued;
   args: {
-    id: `0x${string}`;
-    index: bigint;
-    target: `0x${string}`;
-    value: bigint;
-    data: `0x${string}`;
-    predecessor: `0x${string}`;
-    delay: bigint;
+    proposalId: bigint;
+    eta: bigint;
   };
 }
 
 export interface ParsedQuickAlert {
   blockNumber: number;
-  event: CallScheduledEvent | ProposalCreatedEvent | HealthCheckEvent;
+  event: ProposalCreatedEvent | ProposalQueuedEvent | HealthCheckEvent;
   timelockId?: string;
   txHash: string;
 }
