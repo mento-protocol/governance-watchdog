@@ -6,6 +6,7 @@ import type {
 import assert from "assert/strict";
 import handleHealthCheckEvent from "./health-check";
 import parseTransactionReceipts from "./parse-transaction-receipts";
+import handleProposalCanceledEvent from "./proposal-canceled";
 import handleProposalCreatedEvent from "./proposal-created";
 import handleProposalExecutedEvent from "./proposal-executed";
 import handleProposalQueuedEvent from "./proposal-queued";
@@ -47,6 +48,10 @@ export const governanceWatchdog: HttpFunction = async (
 
         case EventType.ProposalExecuted:
           await handleProposalExecutedEvent(quickAlert);
+          break;
+
+        case EventType.ProposalCanceled:
+          await handleProposalCanceledEvent(quickAlert);
           break;
 
         // Acts a health check for the service, as it's a frequently emitted event

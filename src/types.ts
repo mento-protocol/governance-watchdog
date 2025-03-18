@@ -30,6 +30,7 @@ export enum EventType {
   ProposalCreated = "ProposalCreated",
   ProposalQueued = "ProposalQueued",
   ProposalExecuted = "ProposalExecuted",
+  ProposalCanceled = "ProposalCanceled",
   MedianUpdated = "MedianUpdated",
   Unknown = "Unknown",
 }
@@ -73,12 +74,20 @@ export interface ProposalExecutedEvent {
   };
 }
 
+export interface ProposalCanceledEvent {
+  eventName: EventType.ProposalCanceled;
+  args: {
+    proposalId: bigint;
+  };
+}
+
 export interface QuickAlert {
   blockNumber: number;
   event:
     | ProposalCreatedEvent
     | ProposalQueuedEvent
     | ProposalExecutedEvent
+    | ProposalCanceledEvent
     | HealthCheckEvent;
   timelockId?: string;
   txHash: string;

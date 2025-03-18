@@ -7,6 +7,7 @@ import { decodeEventLog } from "viem";
 import GovernorABI from "./abis/governor.abi.js";
 import SortedOraclesABI from "./abis/sorted-oracles.abi.js";
 import isHealthCheckEvent from "./health-check/is-health-check-event.js";
+import isProposalCanceledEvent from "./proposal-canceled/is-proposal-canceled-event.js";
 import isProposalCreatedEvent from "./proposal-created/is-proposal-created-event.js";
 import isProposalExecutedEvent from "./proposal-executed/is-proposal-executed-event.js";
 import isProposalQueuedEvent from "./proposal-queued/is-proposal-queued-event.js";
@@ -132,6 +133,26 @@ export default function parseTransactionReceipts(
           });
 
           assert(isProposalExecutedEvent(event));
+
+          result.push({
+            blockNumber,
+            event,
+            txHash,
+          });
+          break;
+        }
+
+        case EventType.ProposalCanceled: {
+          const event = decodeEventLog({
+            abi: GovernorABI,
+            data: log.data as `0x${string}`,
+            topics: log.topics as [
+              signature: `0x${string}`,
+              ...args: `0x${string}`[],
+            ],
+          });
+
+          assert(isProposalCanceledEvent(event));
 
           result.push({
             blockNumber,
