@@ -178,3 +178,7 @@ For most problems, you'll likely want to check the cloud function logs first.
 
 - `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access
 - `npm run logs:url` will print the URL to the function logs in the Google Cloud Console for full access
+
+## Deploying from scratch
+
+Check [DEPLOY_FROM_SCRATCH.md](./DEPLOY_FROM_SCRATCH.md)

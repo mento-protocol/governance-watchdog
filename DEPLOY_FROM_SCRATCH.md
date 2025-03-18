@@ -70,6 +70,15 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    echo "discord_webhook_url = \"<discord-webhook-url>"" >> terraform.tfvars
    ```
 
+1. [Create a Test Discord Webhook URL](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for a test channel you want to receive test notifications in <!-- markdown-link-check-enable -->
+
+1. Add the Test Discord Webhook URL to your local `terraform.tfvars`:
+
+   ```sh
+   # This will be stored in Google Secret Manager upon deployment via Terraform
+   echo "discord_test_webhook_url = \"<discord-test-webhook-url>"" >> terraform.tfvars
+   ```
+
 1. Create a Telegram group and invite a new bot into it
 
    - Open a new telegram chat with @BotFather
@@ -88,6 +97,16 @@ If for whatever reason service account impersonation doesn't work, you'll need a
      ```
 
    - Remove @MissRose_bot after you got the Chat ID
+
+1. Now also create a Test Telegram group and invite your newly created bot into it
+
+   - We will use this channel to test notifications without spamming the watchdog members
+   - Get the Chat ID by inviting @MissRose_bot to the group and then using the `/id` command
+   - Add the Chat ID to your `terraform.tfvars`
+
+     ```hcl
+     telegram_test_chat_id = "<test-chat-id>"
+     ```
 
 1. Get (or generate if non-existing) a QuickNode API key to enable Terraform to provision QuickAlerts
 
