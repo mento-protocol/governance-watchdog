@@ -134,21 +134,21 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 
    # See if you can manually trigger the deployed watchdog function with some dummy data
    # Make sure to delete the fake posts from the Telegram & Discord channels to not spam channel members too much
-   npm run test:prod
+   npm run test:prod:ProposalCreated
    ```
 
 ## Running and testing the Cloud Function locally
 
 - `npm install`
 - `npm run dev` to start a local cloud function with hot-reload via nodemon
-- `npm test` to call the local cloud function with a mocked payload, this will send a real Discord message into the channel belonging to the configured Discord Webhook:
+- `npm test:local:<EventName>` to call the local cloud function with a mocked payload for the respective event, this will send Telegram & Discord messages into the respective test channels
 
 ## Testing the Deployed Cloud Function
 
 You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
 
 ```sh
-npm run test:prod
+npm run test:prod:<EventName> # i.e. npm run test:prod:ProposalCreated
 ```
 
 ## Updating the Cloud Function
