@@ -15,7 +15,6 @@
     "gcp-build": "npm run build",
     "generate:env": "terraform -chdir=infra apply -target=local_file.env_file",
     "logs": "./bin/get-logs.sh",
-    "logs:url": "./bin/get-logs-url.sh",
     "prestart": "npm run build",
     "start": "NODE_ENV=development functions-framework --target=governanceWatchdog",
     "test": "npm run test:local:ProposalCreated && npm run test:local:ProposalQueued && npm run test:local:ProposalExecuted && npm run test:local:ProposalCanceled && npm run test:local:TimelockChange && npm run test:local:healthcheck",

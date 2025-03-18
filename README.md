@@ -176,8 +176,7 @@ You have two options, using `terraform` or the `gcloud` cli. Both are perfectly 
 
 For most problems, you'll likely want to check the cloud function logs first.
 
-- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access
-- `npm run logs:url` will print the URL to the function logs in the Google Cloud Console for full access
+- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
 
 ## Deploying from scratch
 

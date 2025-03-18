@@ -160,9 +160,7 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    # 3. Monitor the configured Telegram channel for a message to appear
 
    # 4. Check the function logs via:
-   npm run logs # prints logs into your local terminal (with a few seconds of latency)
-   # OR
-   npm run logs:url # prints a URL to the cloud console logs in the browser
+   npm run logs # prints logs into your local terminal incl. a URL to the full logs in the google cloud console
    ```
 
 ## Debugging Problems
@@ -171,8 +169,7 @@ If for whatever reason service account impersonation doesn't work, you'll need a
 
 For most problems, you'll likely want to check the cloud function logs first.
 
-- `npm run logs` will print the latest 50 staging log entries into your local terminal for quick and easy access
-- `npm run logs:url` will print the URL to the staging function logs in the Google Cloud Console for full access
+- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
 
 ## Teardown
 
