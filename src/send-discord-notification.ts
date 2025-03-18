@@ -1,6 +1,6 @@
 import { EmbedBuilder, WebhookClient } from "discord.js";
-import getSecret from "./get-secret.js";
 import getNotificationChannels from "./utils/get-notification-channels.js";
+import getSecret from "./utils/get-secret.js";
 
 /**
  * Generic Discord notification function that can be reused by different event handlers

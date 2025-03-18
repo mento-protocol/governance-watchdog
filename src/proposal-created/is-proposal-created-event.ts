@@ -1,5 +1,5 @@
 import type { DecodeEventLogReturnType } from "viem";
-import type GovernorABI from "../governor-abi.js";
+import type GovernorABI from "../abis/governor.abi.js";
 import type { ProposalCreatedEvent } from "../types.js";
 
 export default function isProposalCreatedEvent(

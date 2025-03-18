@@ -1,6 +1,6 @@
 import config from "./config.js";
-import getSecret from "./get-secret.js";
 import getNotificationChannels from "./utils/get-notification-channels.js";
+import getSecret from "./utils/get-secret.js";
 import { createFormattedMessage } from "./utils/telegram.js";
 
 /**

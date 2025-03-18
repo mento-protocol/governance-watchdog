@@ -1,5 +1,5 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import config from "./config.js";
+import config from "../config.js";
 
 /**
  * Load a secret from Secret Manager

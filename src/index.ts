@@ -10,7 +10,7 @@ import handleProposalCreatedEvent from "./proposal-created";
 import handleProposalExecutedEvent from "./proposal-executed";
 import handleProposalQueuedEvent from "./proposal-queued";
 import { EventType } from "./types.js";
-import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
+import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
 
 export const governanceWatchdog: HttpFunction = async (
   req: Request,

@@ -4,16 +4,16 @@ import assert from "assert/strict";
 import { decodeEventLog } from "viem";
 
 // Internal
-import GovernorABI from "./governor-abi.js";
-import SortedOraclesABI from "./sorted-oracles-abi.js";
+import GovernorABI from "./abis/governor.abi.js";
+import SortedOraclesABI from "./abis/sorted-oracles.abi.js";
+import isHealthCheckEvent from "./health-check/is-health-check-event.js";
+import isProposalCreatedEvent from "./proposal-created/is-proposal-created-event.js";
+import isProposalExecutedEvent from "./proposal-executed/is-proposal-executed-event.js";
+import isProposalQueuedEvent from "./proposal-queued/is-proposal-queued-event.js";
 import { EventType, QuickAlert } from "./types.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
-import isHealthCheckEvent from "./utils/is-health-check-event.js";
-import isProposalCreatedEvent from "./utils/is-proposal-created-event.js";
-import isProposalExecutedEvent from "./utils/is-proposal-executed-event.js";
-import isProposalQueuedEvent from "./utils/is-proposal-queued-event.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
 /**
