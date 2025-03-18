@@ -20,13 +20,13 @@ resource "quicknode_notification" "proposal_created" {
   enabled         = true
 }
 
-# Creates a new QuickAlert event listener for `CallScheduled` events on our Governance TimelockController contract on Celo Mainnet
+# Creates a new QuickAlert event listener for ProposalQueued (actual event name is`CallScheduled`) events on our Governance
+# TimelockController contract on Celo Mainnet https://celoscan.io/address/0x890db8a597940165901372dd7db61c9f246e2147
 # This event listener will then call the QuickNode destination below.
 resource "quicknode_notification" "proposal_queued" {
   name    = "Proposal Queued"
   network = "celo-mainnet"
 
-  # Watches for new CallScheduled events on the Governance TimelockController contract at https://celoscan.io/address/0x890db8a597940165901372dd7db61c9f246e2147
   # Decoded version: `tx_logs_address == '0x890DB8A597940165901372Dd7DB61C9f246e2147' && tx_logs_topic0 == '0x4cf4410cc57040e44862ef0f45f3dd5a5e02db8eb8add648d4b0e236f1d07dca'`
   # base64-encoded expression => https://www.quicknode.com/docs/quickalerts/rest-api/notifications/quickalerts-rest-create-notification
   expression      = "dHhfbG9nc19hZGRyZXNzID09ICcweDg5MERCOEE1OTc5NDAxNjU5MDEzNzJEZDdEQjYxQzlmMjQ2ZTIxNDcnICYmIHR4X2xvZ3NfdG9waWMwID09ICcweDRjZjQ0MTBjYzU3MDQwZTQ0ODYyZWYwZjQ1ZjNkZDVhNWUwMmRiOGViOGFkZDY0OGQ0YjBlMjM2ZjFkMDdkY2En"
