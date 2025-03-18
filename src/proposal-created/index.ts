@@ -16,6 +16,8 @@ export default async function handleProposalCreatedEvent(
   assert(timelockId, "Timelock ID is missing");
 
   console.info("ProposalCreated event found at block", blockNumber);
+  // TODO: Remove this after we solve the issue with duplicate notifications
+  console.info("ProposalCreated QuickAlert Payload:", quickAlert);
 
   try {
     console.info("Sending discord notification for ProposalCreated event...");
