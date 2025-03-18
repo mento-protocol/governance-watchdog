@@ -61,7 +61,7 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    billing_account      = "<our-billing-account-id>"
    ```
 
-1. [Create a Discord Webhook URL](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for the channel you want to receive notifications in <!-- markdown-link-check-enable -->
+1. [Create a Discord Webhook URL](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for the channel you want to receive notifications in
 
 1. Add the Discord Webhook URL to your local `terraform.tfvars`:
 
