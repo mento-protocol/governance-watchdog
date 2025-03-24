@@ -12,6 +12,7 @@ import handleProposalExecutedEvent from "./proposal-executed";
 import handleProposalQueuedEvent from "./proposal-queued";
 import handleTimelockChangeEvent from "./timelock-change";
 import { EventType } from "./types.js";
+import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
 import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
 
 export const governanceWatchdog: HttpFunction = async (
@@ -37,7 +38,17 @@ export const governanceWatchdog: HttpFunction = async (
       }
     }
 
+    let eventsProcessed = 0;
+    let eventsDeduplicated = 0;
+
     for (const quickAlert of parseTransactionReceipts(req.body)) {
+      // Skip duplicated events to prevent sending multiple notifications
+      if (isDuplicate(quickAlert)) {
+        eventsDeduplicated++;
+        continue;
+      }
+
+      eventsProcessed++;
       switch (quickAlert.event.eventName) {
         case EventType.ProposalCreated:
           await handleProposalCreatedEvent(quickAlert);
@@ -70,6 +81,16 @@ export const governanceWatchdog: HttpFunction = async (
             `Unknown event type from payload: ${JSON.stringify(req.body)}`,
           );
       }
+    }
+
+    if (eventsDeduplicated > 0) {
+      console.log(
+        `Events processed: ${String(
+          eventsProcessed,
+        )}, Events deduplicated: ${String(
+          eventsDeduplicated,
+        )}, Deduplication cache size: ${String(getCacheSize())}`,
+      );
     }
 
     res.status(200).send("Event successfully processed");
