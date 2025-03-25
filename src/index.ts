@@ -51,14 +51,17 @@ export const governanceWatchdog: HttpFunction = async (
       eventsProcessed++;
       switch (quickAlert.event.eventName) {
         case EventType.ProposalCreated:
+          console.log("[DEBUG] ProposalCreated Event Request Body:", req.body);
           await handleProposalCreatedEvent(quickAlert);
           break;
 
         case EventType.ProposalQueued:
+          console.log("[DEBUG] ProposalQueued Event Request Body:", req.body);
           await handleProposalQueuedEvent(quickAlert);
           break;
 
         case EventType.ProposalExecuted:
+          console.log("[DEBUG] ProposalExecuted Event Request Body:", req.body);
           await handleProposalExecutedEvent(quickAlert);
           break;
 
