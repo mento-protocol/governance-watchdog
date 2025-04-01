@@ -88,7 +88,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    # Get it via `gcloud billing accounts list` (pick the GmbH account)
    billing_account      = "<our-billing-account-id>"
 
-   # The Discord Channel where we post live notifications to
+   # The Discord Channel where we post mainnet notifications to
    # Get it via `gcloud secrets versions access latest --secret discord-webhook-url`
    # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
    discord_webhook_url  = "<discord-webhook-url>"
@@ -98,13 +98,13 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
    discord_test_webhook_url  = "<discord-test-webhook-url>"
 
-   # The Telegram Chat where we post live notifications to
+   # The Telegram Chat where we post mainnet notifications to
    # Get it via `terraform state show "google_cloudfunctions2_function.watchdog_notifications" | grep TELEGRAM_CHAT_ID | awk -F '= ' '{print $2}' | tr -d '"'`
    telegram_chat_id     = "<telegram-chat-id>"
 
    # The Telegram Chat where we post test notifications to
    # Get it via `terraform state show "google_cloudfunctions2_function.watchdog_notifications" | grep TELEGRAM_TEST_CHAT_ID | awk -F '= ' '{print $2}' | tr -d '"'`
-   telegram_teset_chat_id = "<telegram-test-chat-id>"
+   telegram_test_chat_id = "<telegram-test-chat-id>"
 
    # The Telegram bot used to receive and post notifications
    # NOTE: Make sure to also invite @MentoGovBot to the TG chat you want to post notifications to!

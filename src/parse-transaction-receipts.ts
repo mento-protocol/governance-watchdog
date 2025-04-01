@@ -1,11 +1,8 @@
 import assert from "assert/strict";
 
 // External
-import { decodeEventLog } from "viem";
 
 // Internal
-import GovernorABI from "./abis/governor.abi.js";
-import SortedOraclesABI from "./abis/sorted-oracles.abi.js";
 import isHealthCheckEvent from "./health-check/is-health-check-event.js";
 import isProposalCanceledEvent from "./proposal-canceled/is-proposal-canceled-event.js";
 import isProposalCreatedEvent from "./proposal-created/is-proposal-created-event.js";
@@ -13,6 +10,11 @@ import isProposalExecutedEvent from "./proposal-executed/is-proposal-executed-ev
 import isProposalQueuedEvent from "./proposal-queued/is-proposal-queued-event.js";
 import isTimelockChangeEvent from "./timelock-change/is-timelock-change-event.js";
 import { EventType, QuickAlert } from "./types.js";
+import {
+  decodeEvent,
+  GovernorABI,
+  SortedOraclesABI,
+} from "./utils/decode-event.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
 import getProposaltimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
@@ -63,15 +65,7 @@ export default function parseTransactionReceipts(
           continue;
 
         case EventType.ProposalCreated: {
-          const event = decodeEventLog({
-            abi: GovernorABI,
-            data: log.data as `0x${string}`,
-            topics: log.topics as [
-              signature: `0x${string}`,
-              ...args: `0x${string}`[],
-            ],
-          });
-
+          const event = decodeEvent(log, GovernorABI);
           assert(isProposalCreatedEvent(event));
 
           result.push({
@@ -84,15 +78,7 @@ export default function parseTransactionReceipts(
         }
 
         case EventType.MedianUpdated: {
-          const event = decodeEventLog({
-            abi: SortedOraclesABI,
-            data: log.data as `0x${string}`,
-            topics: log.topics as [
-              signature: `0x${string}`,
-              ...args: `0x${string}`[],
-            ],
-          });
-
+          const event = decodeEvent(log, SortedOraclesABI);
           assert(isHealthCheckEvent(event));
 
           result.push({
@@ -104,15 +90,7 @@ export default function parseTransactionReceipts(
         }
 
         case EventType.ProposalQueued: {
-          const event = decodeEventLog({
-            abi: GovernorABI,
-            data: log.data as `0x${string}`,
-            topics: log.topics as [
-              signature: `0x${string}`,
-              ...args: `0x${string}`[],
-            ],
-          });
-
+          const event = decodeEvent(log, GovernorABI);
           assert(isProposalQueuedEvent(event));
 
           result.push({
@@ -124,15 +102,7 @@ export default function parseTransactionReceipts(
         }
 
         case EventType.ProposalExecuted: {
-          const event = decodeEventLog({
-            abi: GovernorABI,
-            data: log.data as `0x${string}`,
-            topics: log.topics as [
-              signature: `0x${string}`,
-              ...args: `0x${string}`[],
-            ],
-          });
-
+          const event = decodeEvent(log, GovernorABI);
           assert(isProposalExecutedEvent(event));
 
           result.push({
@@ -144,15 +114,7 @@ export default function parseTransactionReceipts(
         }
 
         case EventType.ProposalCanceled: {
-          const event = decodeEventLog({
-            abi: GovernorABI,
-            data: log.data as `0x${string}`,
-            topics: log.topics as [
-              signature: `0x${string}`,
-              ...args: `0x${string}`[],
-            ],
-          });
-
+          const event = decodeEvent(log, GovernorABI);
           assert(isProposalCanceledEvent(event));
 
           result.push({
@@ -164,15 +126,7 @@ export default function parseTransactionReceipts(
         }
 
         case EventType.TimelockChange: {
-          const event = decodeEventLog({
-            abi: GovernorABI,
-            data: log.data as `0x${string}`,
-            topics: log.topics as [
-              signature: `0x${string}`,
-              ...args: `0x${string}`[],
-            ],
-          });
-
+          const event = decodeEvent(log, GovernorABI);
           assert(isTimelockChangeEvent(event));
 
           result.push({
