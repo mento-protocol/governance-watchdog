@@ -1,6 +1,6 @@
 import type { Request } from "@google-cloud/functions-framework";
 import crypto from "crypto";
-import config from "./config";
+import config from "../config";
 import getSecret from "./get-secret";
 
 export async function isFromQuicknode(req: Request): Promise<boolean> {

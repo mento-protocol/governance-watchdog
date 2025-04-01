@@ -4,68 +4,78 @@ import type {
   Response,
 } from "@google-cloud/functions-framework";
 import assert from "assert/strict";
+import handleHealthCheckEvent from "./health-check";
 import parseTransactionReceipts from "./parse-transaction-receipts";
-import sendDiscordNotification from "./send-discord-notification";
-import sendTelegramNotification from "./send-telegram-notification";
+import handleProposalCanceledEvent from "./proposal-canceled";
+import handleProposalCreatedEvent from "./proposal-created";
+import handleProposalExecutedEvent from "./proposal-executed";
+import handleProposalQueuedEvent from "./proposal-queued";
+import handleTimelockChangeEvent from "./timelock-change";
 import { EventType } from "./types.js";
-import { hasAuthToken, isFromQuicknode } from "./validate-request-origin";
+import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
+import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
 
-export const watchdogNotifier: HttpFunction = async (
+export const governanceWatchdog: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
   const isProduction = process.env.NODE_ENV !== "development";
   try {
+    /**
+     * We only want to accept requests in production that
+     *  1) Come from Quicknode
+     *  2) or have an auth token (which we use for testing in production)
+     */
     if (isProduction) {
-      const isAuthorized =
-        (await isFromQuicknode(req)) || (await hasAuthToken(req));
-
-      if (!isAuthorized) {
-        console.error("Origin validation failed for request.");
+      if (await isFromQuicknode(req)) {
+        if (process.env.DEBUG) console.info("Received QuickAlert:", req.body);
+      } else if (await hasAuthToken(req)) {
+        console.info("Received Call with auth token:", req.body);
+      } else {
+        console.error("Unauthorized. Request origin validation failed.");
         res.status(401).send("Unauthorized");
         return;
       }
     }
 
-    const parsedEvents = parseTransactionReceipts(req.body);
+    let eventsProcessed = 0;
+    let eventsDeduplicated = 0;
 
-    for (const parsedEvent of parsedEvents) {
-      switch (parsedEvent.event.eventName) {
+    for (const quickAlert of parseTransactionReceipts(req.body)) {
+      // Skip duplicated events to prevent sending multiple notifications
+      if (isDuplicate(quickAlert)) {
+        eventsDeduplicated++;
+        continue;
+      }
+
+      eventsProcessed++;
+      switch (quickAlert.event.eventName) {
         case EventType.ProposalCreated:
-          assert(parsedEvent.timelockId, "Timelock ID is missing");
-
-          console.info(
-            "ProposalCreated event found at block",
-            parsedEvent.block,
-          );
-
-          try {
-            console.info("Sending discord notification...");
-            await sendDiscordNotification(
-              parsedEvent.event,
-              parsedEvent.timelockId,
-              parsedEvent.txHash,
-            );
-          } catch (error) {
-            console.error("Failed to send Discord notification:", error);
-          }
-
-          try {
-            console.info("Sending telegram notification...");
-            await sendTelegramNotification(
-              parsedEvent.event,
-              parsedEvent.timelockId,
-              parsedEvent.txHash,
-            );
-          } catch (error) {
-            console.error("Failed to send Telegram notification:", error);
-          }
-
+          console.log("[DEBUG] ProposalCreated Event Request Body:", req.body);
+          await handleProposalCreatedEvent(quickAlert);
           break;
 
+        case EventType.ProposalQueued:
+          console.log("[DEBUG] ProposalQueued Event Request Body:", req.body);
+          await handleProposalQueuedEvent(quickAlert);
+          break;
+
+        case EventType.ProposalExecuted:
+          console.log("[DEBUG] ProposalExecuted Event Request Body:", req.body);
+          await handleProposalExecutedEvent(quickAlert);
+          break;
+
+        case EventType.ProposalCanceled:
+          await handleProposalCanceledEvent(quickAlert);
+          break;
+
+        case EventType.TimelockChange:
+          await handleTimelockChangeEvent(quickAlert);
+          break;
+
+        // Acts a health check for the service, as it's a frequently emitted event
         case EventType.MedianUpdated:
-          // Acts a health check/heartbeat for the service, as it's a frequently emitted event
-          console.info("[HealthCheck]: Block", parsedEvent.block);
+          handleHealthCheckEvent(quickAlert);
           break;
 
         default:
@@ -74,6 +84,16 @@ export const watchdogNotifier: HttpFunction = async (
             `Unknown event type from payload: ${JSON.stringify(req.body)}`,
           );
       }
+    }
+
+    if (eventsDeduplicated > 0) {
+      console.log(
+        `Events processed: ${String(
+          eventsProcessed,
+        )}, Events deduplicated: ${String(
+          eventsDeduplicated,
+        )}, Deduplication cache size: ${String(getCacheSize())}`,
+      );
     }
 
     res.status(200).send("Event successfully processed");

@@ -27,6 +27,9 @@ get_function_logs() {
 else
   "[\(.level)] \u001b[33m\(.time_utc)\u001b[0m: \(.log)"
 end'
+
+	logs_url="https://console.cloud.google.com/run/detail/${region}/${function_name}/logs?project=${project_id}"
+	printf '\n\033[1m%s\033[0m\n' "${logs_url}"
 }
 
 get_function_logs "$@"

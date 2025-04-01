@@ -88,16 +88,26 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    # Get it via `gcloud billing accounts list` (pick the GmbH account)
    billing_account      = "<our-billing-account-id>"
 
-   # The Discord Channel where we post notifications to
+   # The Discord Channel where we post mainnet notifications to
    # Get it via `gcloud secrets versions access latest --secret discord-webhook-url`
    # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
    discord_webhook_url  = "<discord-webhook-url>"
 
-   # The Telegram Chat where we post notifications to
+   # The Discord Channel where we post test notifications to
+   # Get it via `gcloud secrets versions access latest --secret discord-test-webhook-url`
+   # You need the "Secret Manager Secret Accessor" IAM role for this command to succeed
+   discord_test_webhook_url  = "<discord-test-webhook-url>"
+
+   # The Telegram Chat where we post mainnet notifications to
    # Get it via `terraform state show "google_cloudfunctions2_function.watchdog_notifications" | grep TELEGRAM_CHAT_ID | awk -F '= ' '{print $2}' | tr -d '"'`
    telegram_chat_id     = "<telegram-chat-id>"
 
+   # The Telegram Chat where we post test notifications to
+   # Get it via `terraform state show "google_cloudfunctions2_function.watchdog_notifications" | grep TELEGRAM_TEST_CHAT_ID | awk -F '= ' '{print $2}' | tr -d '"'`
+   telegram_test_chat_id = "<telegram-test-chat-id>"
+
    # The Telegram bot used to receive and post notifications
+   # NOTE: Make sure to also invite @MentoGovBot to the TG chat you want to post notifications to!
    # Get it via `gcloud secrets versions access latest --secret telegram-bot-token`
    telegram_bot_token   = "<telegram-bot-token>"
 
@@ -124,21 +134,21 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 
    # See if you can manually trigger the deployed watchdog function with some dummy data
    # Make sure to delete the fake posts from the Telegram & Discord channels to not spam channel members too much
-   npm run test:prod
+   npm run test:prod:ProposalCreated
    ```
 
 ## Running and testing the Cloud Function locally
 
 - `npm install`
 - `npm run dev` to start a local cloud function with hot-reload via nodemon
-- `npm test` to call the local cloud function with a mocked payload, this will send a real Discord message into the channel belonging to the configured Discord Webhook:
+- `npm test:local:<EventName>` to call the local cloud function with a mocked payload for the respective event, this will send Telegram & Discord messages into the respective test channels
 
 ## Testing the Deployed Cloud Function
 
-You can test the deployed cloud function manually by using the `proposal-created.fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
+You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
 
 ```sh
-npm run test:prod
+npm run test:prod:<EventName> # i.e. npm run test:prod:ProposalCreated
 ```
 
 ## Updating the Cloud Function
@@ -175,5 +185,8 @@ You have two options, using `terraform` or the `gcloud` cli. Both are perfectly 
 
 For most problems, you'll likely want to check the cloud function logs first.
 
-- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access
-- `npm run logs:url` will print the URL to the function logs in the Google Cloud Console for full access
+- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
+
+## Deploying from scratch
+
+Check [DEPLOY_FROM_SCRATCH.md](./DEPLOY_FROM_SCRATCH.md)

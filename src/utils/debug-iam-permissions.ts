@@ -28,7 +28,7 @@ export default async function checkIamPermissions(serviceAccountEmail: string) {
 
     const permissions: string[] = [];
     bindings.forEach((binding) => {
-      if (binding.role) permissions.push(...binding.role);
+      if (binding.role) permissions.push(binding.role);
     });
 
     console.log(`IAM permissions for ${serviceAccountEmail}:`, permissions);

@@ -27,9 +27,13 @@ export interface LogsEntity {
 }
 
 export enum EventType {
-  Unknown = "Unknown",
   ProposalCreated = "ProposalCreated",
+  ProposalQueued = "ProposalQueued",
+  ProposalExecuted = "ProposalExecuted",
+  ProposalCanceled = "ProposalCanceled",
+  TimelockChange = "TimelockChange",
   MedianUpdated = "MedianUpdated",
+  Unknown = "Unknown",
 }
 
 export interface ProposalCreatedEvent {
@@ -54,4 +58,47 @@ export interface HealthCheckEvent {
     token: `0x${string}`;
     value: bigint;
   };
+}
+
+export interface ProposalQueuedEvent {
+  eventName: EventType.ProposalQueued;
+  args: {
+    proposalId: bigint;
+    eta: bigint;
+  };
+}
+
+export interface ProposalExecutedEvent {
+  eventName: EventType.ProposalExecuted;
+  args: {
+    proposalId: bigint;
+  };
+}
+
+export interface ProposalCanceledEvent {
+  eventName: EventType.ProposalCanceled;
+  args: {
+    proposalId: bigint;
+  };
+}
+
+export interface TimelockChangeEvent {
+  eventName: EventType.TimelockChange;
+  args: {
+    oldTimelock: `0x${string}`;
+    newTimelock: `0x${string}`;
+  };
+}
+
+export interface QuickAlert {
+  blockNumber: number;
+  event:
+    | ProposalCreatedEvent
+    | ProposalQueuedEvent
+    | ProposalExecutedEvent
+    | ProposalCanceledEvent
+    | TimelockChangeEvent
+    | HealthCheckEvent;
+  timelockId?: string;
+  txHash: string;
 }

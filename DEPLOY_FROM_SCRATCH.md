@@ -61,13 +61,22 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    billing_account      = "<our-billing-account-id>"
    ```
 
-1. [Create a Discord Webhook URL](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for the channel you want to receive notifications in <!-- markdown-link-check-enable -->
+1. [Create a Discord Webhook URL](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for the channel you want to receive notifications in
 
 1. Add the Discord Webhook URL to your local `terraform.tfvars`:
 
    ```sh
    # This will be stored in Google Secret Manager upon deployment via Terraform
    echo "discord_webhook_url = \"<discord-webhook-url>"" >> terraform.tfvars
+   ```
+
+1. [Create a Test Discord Webhook URL](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) for a test channel you want to receive test notifications in <!-- markdown-link-check-enable -->
+
+1. Add the Test Discord Webhook URL to your local `terraform.tfvars`:
+
+   ```sh
+   # This will be stored in Google Secret Manager upon deployment via Terraform
+   echo "discord_test_webhook_url = \"<discord-test-webhook-url>"" >> terraform.tfvars
    ```
 
 1. Create a Telegram group and invite a new bot into it
@@ -88,6 +97,16 @@ If for whatever reason service account impersonation doesn't work, you'll need a
      ```
 
    - Remove @MissRose_bot after you got the Chat ID
+
+1. Now also create a Test Telegram group and invite your newly created bot into it
+
+   - We will use this channel to test notifications without spamming the watchdog members
+   - Get the Chat ID by inviting @MissRose_bot to the group and then using the `/id` command
+   - Add the Chat ID to your `terraform.tfvars`
+
+     ```hcl
+     telegram_test_chat_id = "<test-chat-id>"
+     ```
 
 1. Get (or generate if non-existing) a QuickNode API key to enable Terraform to provision QuickAlerts
 
@@ -141,9 +160,7 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    # 3. Monitor the configured Telegram channel for a message to appear
 
    # 4. Check the function logs via:
-   npm run logs # prints logs into your local terminal (with a few seconds of latency)
-   # OR
-   npm run logs:url # prints a URL to the cloud console logs in the browser
+   npm run logs # prints logs into your local terminal incl. a URL to the full logs in the google cloud console
    ```
 
 ## Debugging Problems
@@ -152,8 +169,7 @@ If for whatever reason service account impersonation doesn't work, you'll need a
 
 For most problems, you'll likely want to check the cloud function logs first.
 
-- `npm run logs` will print the latest 50 staging log entries into your local terminal for quick and easy access
-- `npm run logs:url` will print the URL to the staging function logs in the Google Cloud Console for full access
+- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
 
 ## Teardown
 

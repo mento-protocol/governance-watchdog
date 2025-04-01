@@ -3,10 +3,12 @@ import { JSONSchemaType, envSchema } from "env-schema";
 export interface Env {
   GCP_PROJECT_ID: string;
   DISCORD_WEBHOOK_URL_SECRET_ID: string;
+  DISCORD_TEST_WEBHOOK_URL_SECRET_ID: string;
   QUICKNODE_SECURITY_TOKEN_SECRET_ID: string;
   X_AUTH_TOKEN_SECRET_ID: string;
   TELEGRAM_BOT_TOKEN_SECRET_ID: string;
   TELEGRAM_CHAT_ID: string;
+  TELEGRAM_TEST_CHAT_ID: string;
 }
 
 const schema: JSONSchemaType<Env> = {
@@ -22,10 +24,12 @@ const schema: JSONSchemaType<Env> = {
   properties: {
     GCP_PROJECT_ID: { type: "string" },
     DISCORD_WEBHOOK_URL_SECRET_ID: { type: "string" },
+    DISCORD_TEST_WEBHOOK_URL_SECRET_ID: { type: "string" },
     QUICKNODE_SECURITY_TOKEN_SECRET_ID: { type: "string" },
     X_AUTH_TOKEN_SECRET_ID: { type: "string" },
     TELEGRAM_BOT_TOKEN_SECRET_ID: { type: "string" },
     TELEGRAM_CHAT_ID: { type: "string" },
+    TELEGRAM_TEST_CHAT_ID: { type: "string" },
   },
 };
 
