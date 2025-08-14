@@ -24,9 +24,13 @@ import isTransactionReceipt from "./utils/is-transaction-receipt.js";
  * Parse request body containing raw transaction receipts
  */
 export default function parseTransactionReceipts(
-  matchedTransactionReceipts: unknown,
+  requestBody: unknown,
 ): QuickAlert[] {
-  const result = [];
+  const result: QuickAlert[] = [];
+  const matchedTransactionReceipts = (
+    requestBody as { matchingReceipts?: unknown }
+  ).matchingReceipts;
+
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
       `Request body is not an array of transaction receipts but was: ${JSON.stringify(

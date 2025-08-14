@@ -85,6 +85,12 @@ variable "quicknode_api_key" {
   sensitive = true
 }
 
+variable "quicknode_webhook_name_healthcheck" {
+  description = "Name for the webhook"
+  type        = string
+  default     = "healthcheck-via-sortedoracles"
+}
+
 # You can look this up via:
 #  `gcloud secrets list`
 variable "quicknode_security_token_secret_id" {
@@ -102,6 +108,12 @@ variable "x_auth_token_secret_id" {
 variable "x_auth_token" {
   type      = string
   sensitive = true
+}
+
+variable "quicknode_security_token" {
+  type        = string
+  sensitive   = true
+  description = "Security token for QuickNode webhook authentication"
 }
 
 # Webhook URL to send monitoring alerts from within GCP Monitoring
