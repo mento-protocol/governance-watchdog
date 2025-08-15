@@ -58,6 +58,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
       const eventType = getEventByTopic(eventSignature);
       const blockNumber = Number(receipt.blockNumber);
       const txHash = log.transactionHash;
+      const logIndex = Number(log.logIndex);
 
       switch (eventType) {
         case EventType.Unknown:
@@ -73,6 +74,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
             blockNumber,
             event,
             txHash,
+            logIndex,
             timelockId: getProposalTimelockId(event),
           });
           break;
@@ -86,6 +88,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -98,6 +101,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -110,6 +114,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -122,6 +127,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -134,6 +140,7 @@ export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }

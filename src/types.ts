@@ -101,4 +101,5 @@ export interface QuickAlert {
     | HealthCheckEvent;
   timelockId?: string;
   txHash: string;
+  logIndex: number; // For granular deduplication between multiple events in same transaction
 }
