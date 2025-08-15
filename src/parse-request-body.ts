@@ -1,6 +1,5 @@
-import assert from "assert/strict";
-
 // External
+import assert from "assert/strict";
 
 // Internal
 import isHealthCheckEvent from "./health-check/is-health-check-event.js";
@@ -16,16 +15,14 @@ import {
   SortedOraclesABI,
 } from "./utils/decode-event.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
-import getProposaltimelockId from "./utils/get-time-lock-id.js";
+import getProposalTimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
 /**
  * Parse request body containing raw transaction receipts
  */
-export default function parseTransactionReceipts(
-  requestBody: unknown,
-): QuickAlert[] {
+export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
   const result: QuickAlert[] = [];
   const matchedTransactionReceipts = (
     requestBody as { matchingReceipts?: unknown }
@@ -34,7 +31,7 @@ export default function parseTransactionReceipts(
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
       `Request body is not an array of transaction receipts but was: ${JSON.stringify(
-        matchedTransactionReceipts,
+        requestBody,
       )}`,
     );
   }
@@ -76,7 +73,7 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
-            timelockId: getProposaltimelockId(event),
+            timelockId: getProposalTimelockId(event),
           });
           break;
         }
