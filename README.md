@@ -119,6 +119,9 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    # Get it from the [QuickNode dashboard](https://dashboard.quicknode.com/api-keys)
    quicknode_api_key    = "<quicknode-api-key>"
 
+   # Get it via `echo "\nquicknode_security_token = \"$(gcloud secrets versions access latest --secret quicknode-security-token)\"" >> terraform.tfvars`
+   quicknode_security_token = "<quicknode-security-token>"
+
    # Required to send on-call alerts to VictorOps
    # Get it from [our VictorOps](https://portal.victorops.com/dash/mento-labs-gmbh#/advanced/stackdriver) and clicking `Integrations` > `Stackdriver` and copying the URL. The routing key can be founder under the [`Settings`](https://portal.victorops.com/dash/mento-labs-gmbh#/routekeys) tab
    victorops_webhook_url   = "<victorops-webhook-url>/<victorops-routing-key>"
