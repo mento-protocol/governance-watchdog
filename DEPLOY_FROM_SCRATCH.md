@@ -108,13 +108,22 @@ If for whatever reason service account impersonation doesn't work, you'll need a
      telegram_test_chat_id = "<test-chat-id>"
      ```
 
-1. Get (or generate if non-existing) a QuickNode API key to enable Terraform to provision QuickAlerts
+1. Get (or generate if non-existing) a QuickNode API key to enable Terraform to provision QuickNode Webhooks
 
    - Grab the API key from our QuickNode dashboard: <https://dashboard.quicknode.com/api-keys>
    - Add it to `terraform.tfvars`
 
    ```hcl
    quicknode_api_key = "<quicknode-api-key>"
+   ```
+
+1. Generate a QuickNode security token for secure communication between QuickNode Webhooks and our cloud function
+
+   - Generate a new random token via `openssl rand -base64 32`
+   - Add it to `terraform.tfvars`
+
+   ```hcl
+   quicknode_security_token = "<quicknode-security-token>"
    ```
 
 1. Get a VictorOps webhook URL by copying the Service API Endpoint URL from the [VictorOps Stackdriver Integration](https://portal.victorops.com/dash/mento-labs-gmbh#/advanced/stackdriver). The routing key can be founder under the [`Settings`](https://portal.victorops.com/dash/mento-labs-gmbh#/routekeys) tab
