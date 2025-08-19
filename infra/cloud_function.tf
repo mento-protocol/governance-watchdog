@@ -2,10 +2,10 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
   project     = module.governance_watchdog.project_id
   location    = var.region
   name        = var.function_name
-  description = "A cloud function that receives blockchain event data from QuickAlerts and sends notifications to a Discord channel"
+  description = "A cloud function that receives blockchain event data from Quicknode Webhook and sends notifications to a Discord channel"
 
   build_config {
-    runtime         = "nodejs20"
+    runtime         = "nodejs22"
     entry_point     = var.function_entry_point
     service_account = module.governance_watchdog.service_account_name
 
@@ -43,15 +43,15 @@ resource "google_cloudfunctions2_function" "watchdog_notifications" {
   }
 }
 
-# Allows the QuickAlerts service (and everyone else...) to call the cloud function
+# Allows the Quicknode Webhook service (and everyone else...) to call the cloud function
 resource "google_cloud_run_v2_service_iam_member" "cloud_function_invoker" {
   project  = module.governance_watchdog.project_id
   location = google_cloudfunctions2_function.watchdog_notifications.location
   name     = google_cloudfunctions2_function.watchdog_notifications.name
   role     = "roles/run.invoker"
-  # We could probably somehow whitelist the QuickAlerts URL or their IP range here instead of allowing everyone to call it,
+  # We could probably somehow whitelist the Quicknode Webhook URL or their IP range here instead of allowing everyone to call it,
   # but given the limited damage potential of calling this function it doesn't seem worth the extra effort.
-  # checkov:skip=CKV_GCP_102: "Function needs to be publicly accessible for QuickAlerts to be able to invoke it."
+  # checkov:skip=CKV_GCP_102: "Function needs to be publicly accessible for Quicknode Webhook to be able to invoke it."
   member = "allUsers"
 }
 

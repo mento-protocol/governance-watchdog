@@ -80,7 +80,6 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    ```
 
 1. Create a Telegram group and invite a new bot into it
-
    - Open a new telegram chat with @BotFather
    - Use the `/newbot` command to create a new bot
    - Copy the API key printed out at the end of the prompt and store it in your `terraform.tfvars`
@@ -99,7 +98,6 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    - Remove @MissRose_bot after you got the Chat ID
 
 1. Now also create a Test Telegram group and invite your newly created bot into it
-
    - We will use this channel to test notifications without spamming the watchdog members
    - Get the Chat ID by inviting @MissRose_bot to the group and then using the `/id` command
    - Add the Chat ID to your `terraform.tfvars`
@@ -108,13 +106,20 @@ If for whatever reason service account impersonation doesn't work, you'll need a
      telegram_test_chat_id = "<test-chat-id>"
      ```
 
-1. Get (or generate if non-existing) a QuickNode API key to enable Terraform to provision QuickAlerts
-
+1. Get (or generate if non-existing) a QuickNode API key to enable Terraform to provision QuickNode Webhooks
    - Grab the API key from our QuickNode dashboard: <https://dashboard.quicknode.com/api-keys>
    - Add it to `terraform.tfvars`
 
    ```hcl
    quicknode_api_key = "<quicknode-api-key>"
+   ```
+
+1. Generate a QuickNode security token for secure communication between QuickNode Webhooks and our cloud function
+   - Generate a new random token via `openssl rand -base64 32`
+   - Add it to `terraform.tfvars`
+
+   ```hcl
+   quicknode_security_token = "<quicknode-security-token>"
    ```
 
 1. Get a VictorOps webhook URL by copying the Service API Endpoint URL from the [VictorOps Stackdriver Integration](https://portal.victorops.com/dash/mento-labs-gmbh#/advanced/stackdriver). The routing key can be founder under the [`Settings`](https://portal.victorops.com/dash/mento-labs-gmbh#/routekeys) tab
@@ -125,7 +130,6 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    ```
 
 1. Generate an auth key to allow us to test the deployed function from our local machines
-
    - You can use your password manager to generate a long and secure (url-compatible) key
    - Add it to `terraform.tfvars`
 
@@ -134,7 +138,6 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    ```
 
 1. **Deploy the entire project via `terraform apply`**
-
    - You will see an overview of all resources to be created. Review them if you like and then type "Yes" to confirm.
    - This command can take up to 10 minutes because it does a lot of work creating and configuring all defined Google Cloud Resources
    - ❌ Given the complexity of setting up an entire Google Cloud Project incl. service accounts, permissions, etc., you might run

@@ -90,7 +90,7 @@ export interface TimelockChangeEvent {
   };
 }
 
-export interface QuickAlert {
+export interface QuicknodeWebhook {
   blockNumber: number;
   event:
     | ProposalCreatedEvent
@@ -101,4 +101,5 @@ export interface QuickAlert {
     | HealthCheckEvent;
   timelockId?: string;
   txHash: string;
+  logIndex: number; // For granular deduplication between multiple events in same transaction
 }

@@ -1,4 +1,4 @@
-import { EventType, QuickAlert } from "../types.js";
+import { EventType, QuicknodeWebhook } from "../types.js";
 
 type EventId = string;
 type Timestamp = number;
@@ -15,8 +15,8 @@ const MAX_CACHE_SIZE = 100;
 /**
  * Generates a unique ID for an event based on its properties
  */
-function generateEventId(quickAlert: QuickAlert): EventId {
-  const { event, txHash } = quickAlert;
+function generateEventId(webhook: QuicknodeWebhook): EventId {
+  const { event, txHash, logIndex } = webhook;
 
   // For different event types, extract the relevant identifying data
   let uniqueData = "";
@@ -51,8 +51,8 @@ function generateEventId(quickAlert: QuickAlert): EventId {
   }
 
   return `${event.eventName}-${uniqueData}-${txHash}-${String(
-    quickAlert.blockNumber,
-  )}`;
+    webhook.blockNumber,
+  )}-${String(logIndex)}`;
 }
 
 /**
@@ -72,24 +72,49 @@ function cleanupOldEntries(): void {
 
 /**
  * Checks if an event is a duplicate (meaning: the same EventID has been processed recently)
- * @param quickAlert The event to check
+ * @param webhook The event to check
  * @returns true if the event is a duplicate, false otherwise
  */
-export function isDuplicate(quickAlert: QuickAlert): boolean {
-  const eventId = generateEventId(quickAlert);
+export function isDuplicate(webhook: QuicknodeWebhook): boolean {
+  const eventId = generateEventId(webhook);
   const now = Date.now();
+
+  if (process.env.DEBUG) {
+    console.log(
+      `[DEDUP] Checking event: ${webhook.event.eventName} (logIndex: ${String(
+        webhook.logIndex,
+      )}, txHash: ${webhook.txHash})`,
+    );
+
+    if (
+      webhook.event.eventName === EventType.MedianUpdated &&
+      "token" in webhook.event.args &&
+      "value" in webhook.event.args
+    ) {
+      console.log(
+        `[DEDUP] MedianUpdated details - token: ${
+          webhook.event.args.token
+        }, value: ${String(webhook.event.args.value)}`,
+      );
+    }
+    console.log(`[DEDUP] Generated eventId: ${eventId}`);
+  }
 
   // Check if we've seen this event recently
   if (processedEvents.has(eventId)) {
     const lastSeen = processedEvents.get(eventId) ?? 0;
     if (now - lastSeen < DEDUPLICATION_WINDOW_MS) {
-      console.log(`Duplicate event detected: ${eventId}`);
+      console.log(`[DEDUP] Duplicate event detected: ${eventId}`);
       return true; // It's a duplicate within our window
     }
   }
 
   // Update the cache
   processedEvents.set(eventId, now);
+
+  if (process.env.DEBUG) {
+    console.log(`[DEDUP] New event added to cache: ${eventId}`);
+  }
 
   // Clean up old entries if cache is getting too large
   if (processedEvents.size > MAX_CACHE_SIZE) {

@@ -60,4 +60,9 @@ resource "google_monitoring_alert_policy" "health_check_policy" {
 
   notification_channels = [google_monitoring_notification_channel.victorops_channel.id]
   severity              = "CRITICAL"
+
+  # This is a workaround to prevent the alert from being automatically closed after 7 days (even if still firing)
+  alert_strategy {
+    auto_close = "1800000s" # 20+ years, effectively never auto-close
+  }
 }

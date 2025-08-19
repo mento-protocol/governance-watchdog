@@ -75,5 +75,5 @@ resource "google_secret_manager_secret" "quicknode_security_token" {
 
 resource "google_secret_manager_secret_version" "quicknode_security_token" {
   secret      = google_secret_manager_secret.quicknode_security_token.id
-  secret_data = quicknode_destination.destination.token
+  secret_data = var.quicknode_security_token
 }

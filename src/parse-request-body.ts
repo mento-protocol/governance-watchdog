@@ -1,6 +1,5 @@
-import assert from "assert/strict";
-
 // External
+import assert from "assert/strict";
 
 // Internal
 import isHealthCheckEvent from "./health-check/is-health-check-event.js";
@@ -9,28 +8,32 @@ import isProposalCreatedEvent from "./proposal-created/is-proposal-created-event
 import isProposalExecutedEvent from "./proposal-executed/is-proposal-executed-event.js";
 import isProposalQueuedEvent from "./proposal-queued/is-proposal-queued-event.js";
 import isTimelockChangeEvent from "./timelock-change/is-timelock-change-event.js";
-import { EventType, QuickAlert } from "./types.js";
+import { EventType, QuicknodeWebhook } from "./types.js";
 import {
   decodeEvent,
   GovernorABI,
   SortedOraclesABI,
 } from "./utils/decode-event.js";
 import getEventByTopic from "./utils/get-event-by-topic.js";
-import getProposaltimelockId from "./utils/get-time-lock-id.js";
+import getProposalTimelockId from "./utils/get-time-lock-id.js";
 import hasLogs from "./utils/has-logs.js";
 import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 
 /**
  * Parse request body containing raw transaction receipts
  */
-export default function parseTransactionReceipts(
-  matchedTransactionReceipts: unknown,
-): QuickAlert[] {
-  const result = [];
+export default function parseRequestBody(
+  requestBody: unknown,
+): QuicknodeWebhook[] {
+  const result: QuicknodeWebhook[] = [];
+  const matchedTransactionReceipts = (
+    requestBody as { matchingReceipts?: unknown }
+  ).matchingReceipts;
+
   if (!Array.isArray(matchedTransactionReceipts)) {
     throw new Error(
       `Request body is not an array of transaction receipts but was: ${JSON.stringify(
-        matchedTransactionReceipts,
+        requestBody,
       )}`,
     );
   }
@@ -57,6 +60,7 @@ export default function parseTransactionReceipts(
       const eventType = getEventByTopic(eventSignature);
       const blockNumber = Number(receipt.blockNumber);
       const txHash = log.transactionHash;
+      const logIndex = Number(log.logIndex);
 
       switch (eventType) {
         case EventType.Unknown:
@@ -72,7 +76,8 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
-            timelockId: getProposaltimelockId(event),
+            logIndex,
+            timelockId: getProposalTimelockId(event),
           });
           break;
         }
@@ -85,6 +90,7 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -97,6 +103,7 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -109,6 +116,7 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -121,6 +129,7 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }
@@ -133,6 +142,7 @@ export default function parseTransactionReceipts(
             blockNumber,
             event,
             txHash,
+            logIndex,
           });
           break;
         }

@@ -5,7 +5,7 @@ import type {
 } from "@google-cloud/functions-framework";
 import assert from "assert/strict";
 import handleHealthCheckEvent from "./health-check";
-import parseTransactionReceipts from "./parse-transaction-receipts";
+import parseRequestBody from "./parse-request-body";
 import handleProposalCanceledEvent from "./proposal-canceled";
 import handleProposalCreatedEvent from "./proposal-created";
 import handleProposalExecutedEvent from "./proposal-executed";
@@ -28,7 +28,8 @@ export const governanceWatchdog: HttpFunction = async (
      */
     if (isProduction) {
       if (await isFromQuicknode(req)) {
-        if (process.env.DEBUG) console.info("Received QuickAlert:", req.body);
+        if (process.env.DEBUG)
+          console.info("Received Quicknode Webhook:", req.body);
       } else if (await hasAuthToken(req)) {
         console.info("Received Call with auth token:", req.body);
       } else {
@@ -38,44 +39,61 @@ export const governanceWatchdog: HttpFunction = async (
       }
     }
 
+    if (!req.body) {
+      console.info("No events to process");
+      res.status(200).send("No events to process");
+      return;
+    }
+
+    if (req.body && typeof req.body === "object" && "error" in req.body) {
+      console.error(
+        "❌ Request body contains an error:",
+        (req.body as { error: unknown }).error,
+      );
+      res.status(500).send("Something went wrong 🤔");
+      return;
+    }
+
     let eventsProcessed = 0;
     let eventsDeduplicated = 0;
 
-    for (const quickAlert of parseTransactionReceipts(req.body)) {
+    for (const webhook of parseRequestBody(req.body)) {
       // Skip duplicated events to prevent sending multiple notifications
-      if (isDuplicate(quickAlert)) {
+      if (isDuplicate(webhook)) {
         eventsDeduplicated++;
         continue;
       }
 
       eventsProcessed++;
-      switch (quickAlert.event.eventName) {
+      switch (webhook.event.eventName) {
         case EventType.ProposalCreated:
           console.log("[DEBUG] ProposalCreated Event Request Body:", req.body);
-          await handleProposalCreatedEvent(quickAlert);
+          await handleProposalCreatedEvent(webhook);
           break;
 
         case EventType.ProposalQueued:
           console.log("[DEBUG] ProposalQueued Event Request Body:", req.body);
-          await handleProposalQueuedEvent(quickAlert);
+          await handleProposalQueuedEvent(webhook);
           break;
 
         case EventType.ProposalExecuted:
           console.log("[DEBUG] ProposalExecuted Event Request Body:", req.body);
-          await handleProposalExecutedEvent(quickAlert);
+          await handleProposalExecutedEvent(webhook);
           break;
 
         case EventType.ProposalCanceled:
-          await handleProposalCanceledEvent(quickAlert);
+          console.log("[DEBUG] ProposalCanceled Event Request Body:", req.body);
+          await handleProposalCanceledEvent(webhook);
           break;
 
         case EventType.TimelockChange:
-          await handleTimelockChangeEvent(quickAlert);
+          console.log("[DEBUG] TimelockChange Event Request Body:", req.body);
+          await handleTimelockChangeEvent(webhook);
           break;
 
         // Acts a health check for the service, as it's a frequently emitted event
         case EventType.MedianUpdated:
-          handleHealthCheckEvent(quickAlert);
+          handleHealthCheckEvent(webhook);
           break;
 
         default:

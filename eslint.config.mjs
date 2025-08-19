@@ -10,11 +10,12 @@ export default tseslint.config(
     extends: [tseslint.configs.disableTypeChecked],
   },
   {
-    ignores: ["**/*.mjs"],
+    files: ["**/*.ts"],
+    ignores: ["**/*.mjs", "dist/**"],
     languageOptions: {
       parserOptions: {
         project: true,
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: ".",
       },
     },
   },

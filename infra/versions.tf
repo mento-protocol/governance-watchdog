@@ -2,6 +2,10 @@ terraform {
   required_version = ">= 1.8"
 
   required_providers {
+    restapi = {
+      source  = "Mastercard/restapi"
+      version = "~> 2.0.1"
+    }
     google = {
       source  = "hashicorp/google"
       version = ">= 5.44.0"
@@ -14,10 +18,6 @@ terraform {
       source  = "hashicorp/local"
       version = ">= 2.5.1"
     }
-    quicknode = {
-      source  = "jmtx1020/quicknode"
-      version = "0.0.2"
-    }
   }
 
   backend "gcs" {
@@ -29,4 +29,15 @@ terraform {
 
 provider "google" {
   impersonate_service_account = var.terraform_service_account
+}
+
+# Configure the REST API provider for QuickNode
+provider "restapi" {
+  uri                  = "https://api.quicknode.com"
+  write_returns_object = true
+
+  headers = {
+    "Content-Type" = "application/json"
+    "x-api-key"    = var.quicknode_api_key
+  }
 }

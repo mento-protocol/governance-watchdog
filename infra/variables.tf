@@ -104,6 +104,12 @@ variable "x_auth_token" {
   sensitive = true
 }
 
+variable "quicknode_security_token" {
+  type        = string
+  sensitive   = true
+  description = "Security token for QuickNode webhook authentication"
+}
+
 # Webhook URL to send monitoring alerts from within GCP Monitoring
 # You can find this URL in Victorops by going to "Integrations" -> "Stackdriver".
 # The routing key can be found under "Settings" -> "Routing Keys"

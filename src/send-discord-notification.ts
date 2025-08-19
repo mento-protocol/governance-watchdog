@@ -14,11 +14,9 @@ export default async function sendDiscordNotification(
 ) {
   const { discordWebhookUrlSecretId } = getNotificationChannels();
 
-  const discordWebhookClient = new WebhookClient({
+  await new WebhookClient({
     url: await getSecret(discordWebhookUrlSecretId),
-  });
-
-  await discordWebhookClient.send({
+  }).send({
     content: content,
     embeds: [embed],
   });
