@@ -115,7 +115,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    # Get it via `gcloud secrets versions access latest --secret x-auth-token`
    x_auth_token         = "<x-auth-token>"
 
-   # Required for Terraform to be able to create & destroy QuickAlerts
+   # Required for Terraform to be able to create & destroy Quicknode Webhooks
    # Get it from the [QuickNode dashboard](https://dashboard.quicknode.com/api-keys)
    quicknode_api_key    = "<quicknode-api-key>"
 
@@ -148,7 +148,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 
 ## Testing the Deployed Cloud Function
 
-You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a QuickAlert would send to the cloud function:
+You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a Quicknode Webhook would send to the cloud function:
 
 ```sh
 npm run test:prod:<EventName> # i.e. npm run test:prod:ProposalCreated

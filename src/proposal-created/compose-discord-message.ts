@@ -1,14 +1,14 @@
 import { EmbedBuilder } from "discord.js";
-import type { QuickAlert } from "../types.js";
+import type { QuicknodeWebhook } from "../types.js";
 import { EventType } from "../types.js";
 
 /**
  * Composes a Discord embed message for a proposal created event
- * @param quickAlert The parsed quick alert containing the event data
+ * @param webhook The parsed Quicknode webhook containing the event data
  * @returns An object containing the content and embed for the Discord message
  */
-export default function composeDiscordMessage(quickAlert: QuickAlert) {
-  const { event, timelockId, txHash } = quickAlert;
+export default function composeDiscordMessage(webhook: QuicknodeWebhook) {
+  const { event, timelockId, txHash } = webhook;
 
   if (event.eventName !== EventType.ProposalCreated) {
     throw new Error("Expected ProposalCreated event");

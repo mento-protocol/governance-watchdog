@@ -1,4 +1,4 @@
-import { EventType, QuickAlert } from "../types.js";
+import { EventType, QuicknodeWebhook } from "../types.js";
 
 type EventId = string;
 type Timestamp = number;
@@ -15,8 +15,8 @@ const MAX_CACHE_SIZE = 100;
 /**
  * Generates a unique ID for an event based on its properties
  */
-function generateEventId(quickAlert: QuickAlert): EventId {
-  const { event, txHash, logIndex } = quickAlert;
+function generateEventId(webhook: QuicknodeWebhook): EventId {
+  const { event, txHash, logIndex } = webhook;
 
   // For different event types, extract the relevant identifying data
   let uniqueData = "";
@@ -51,7 +51,7 @@ function generateEventId(quickAlert: QuickAlert): EventId {
   }
 
   return `${event.eventName}-${uniqueData}-${txHash}-${String(
-    quickAlert.blockNumber,
+    webhook.blockNumber,
   )}-${String(logIndex)}`;
 }
 
@@ -72,31 +72,29 @@ function cleanupOldEntries(): void {
 
 /**
  * Checks if an event is a duplicate (meaning: the same EventID has been processed recently)
- * @param quickAlert The event to check
+ * @param webhook The event to check
  * @returns true if the event is a duplicate, false otherwise
  */
-export function isDuplicate(quickAlert: QuickAlert): boolean {
-  const eventId = generateEventId(quickAlert);
+export function isDuplicate(webhook: QuicknodeWebhook): boolean {
+  const eventId = generateEventId(webhook);
   const now = Date.now();
 
   if (process.env.DEBUG) {
     console.log(
-      `[DEDUP] Checking event: ${
-        quickAlert.event.eventName
-      } (logIndex: ${String(quickAlert.logIndex)}, txHash: ${
-        quickAlert.txHash
-      })`,
+      `[DEDUP] Checking event: ${webhook.event.eventName} (logIndex: ${String(
+        webhook.logIndex,
+      )}, txHash: ${webhook.txHash})`,
     );
 
     if (
-      quickAlert.event.eventName === EventType.MedianUpdated &&
-      "token" in quickAlert.event.args &&
-      "value" in quickAlert.event.args
+      webhook.event.eventName === EventType.MedianUpdated &&
+      "token" in webhook.event.args &&
+      "value" in webhook.event.args
     ) {
       console.log(
         `[DEDUP] MedianUpdated details - token: ${
-          quickAlert.event.args.token
-        }, value: ${String(quickAlert.event.args.value)}`,
+          webhook.event.args.token
+        }, value: ${String(webhook.event.args.value)}`,
       );
     }
     console.log(`[DEDUP] Generated eventId: ${eventId}`);

@@ -28,7 +28,8 @@ export const governanceWatchdog: HttpFunction = async (
      */
     if (isProduction) {
       if (await isFromQuicknode(req)) {
-        if (process.env.DEBUG) console.info("Received QuickAlert:", req.body);
+        if (process.env.DEBUG)
+          console.info("Received Quicknode Webhook:", req.body);
       } else if (await hasAuthToken(req)) {
         console.info("Received Call with auth token:", req.body);
       } else {

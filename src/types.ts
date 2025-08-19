@@ -90,7 +90,7 @@ export interface TimelockChangeEvent {
   };
 }
 
-export interface QuickAlert {
+export interface QuicknodeWebhook {
   blockNumber: number;
   event:
     | ProposalCreatedEvent

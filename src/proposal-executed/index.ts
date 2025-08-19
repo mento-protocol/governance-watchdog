@@ -1,13 +1,13 @@
 import sendDiscordNotification from "../send-discord-notification.js";
 import sendTelegramNotification from "../send-telegram-notification.js";
-import { EventType, QuickAlert } from "../types.js";
+import { EventType, QuicknodeWebhook } from "../types.js";
 import composeDiscordMessage from "./compose-discord-message.js";
 import composeTelegramMessage from "./compose-telegram-message.js";
 
 export default async function handleProposalExecutedEvent(
-  quickAlert: QuickAlert,
+  webhook: QuicknodeWebhook,
 ): Promise<void> {
-  const { event, blockNumber } = quickAlert;
+  const { event, blockNumber } = webhook;
   if (event.eventName !== EventType.ProposalExecuted) {
     throw new Error("Expected ProposalExecuted event");
   }
@@ -16,7 +16,7 @@ export default async function handleProposalExecutedEvent(
 
   try {
     console.log("Sending Discord notification for ProposalExecuted event...");
-    const discordMsg = composeDiscordMessage(quickAlert);
+    const discordMsg = composeDiscordMessage(webhook);
     await sendDiscordNotification(discordMsg.content, discordMsg.embed);
     console.log(
       "Successfully sent Discord notification for ProposalExecuted event",
@@ -30,7 +30,7 @@ export default async function handleProposalExecutedEvent(
 
   try {
     console.info("Sending Telegram notification for ProposalExecuted event...");
-    const msgData = composeTelegramMessage(quickAlert);
+    const msgData = composeTelegramMessage(webhook);
     await sendTelegramNotification("✅ PROPOSAL EXECUTED ✅", msgData);
     console.log(
       "Successfully sent Telegram notification for ProposalExecuted event",

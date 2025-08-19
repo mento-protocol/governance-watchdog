@@ -8,7 +8,7 @@ import isProposalCreatedEvent from "./proposal-created/is-proposal-created-event
 import isProposalExecutedEvent from "./proposal-executed/is-proposal-executed-event.js";
 import isProposalQueuedEvent from "./proposal-queued/is-proposal-queued-event.js";
 import isTimelockChangeEvent from "./timelock-change/is-timelock-change-event.js";
-import { EventType, QuickAlert } from "./types.js";
+import { EventType, QuicknodeWebhook } from "./types.js";
 import {
   decodeEvent,
   GovernorABI,
@@ -22,8 +22,10 @@ import isTransactionReceipt from "./utils/is-transaction-receipt.js";
 /**
  * Parse request body containing raw transaction receipts
  */
-export default function parseRequestBody(requestBody: unknown): QuickAlert[] {
-  const result: QuickAlert[] = [];
+export default function parseRequestBody(
+  requestBody: unknown,
+): QuicknodeWebhook[] {
+  const result: QuicknodeWebhook[] = [];
   const matchedTransactionReceipts = (
     requestBody as { matchingReceipts?: unknown }
   ).matchingReceipts;

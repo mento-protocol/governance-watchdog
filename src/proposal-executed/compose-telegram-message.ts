@@ -1,13 +1,13 @@
-import type { QuickAlert } from "../types.js";
+import type { QuicknodeWebhook } from "../types.js";
 import { EventType } from "../types.js";
 
 /**
  * Composes a Telegram message for a proposal executed event
- * @param quickAlert The parsed quick alert containing the event data
+ * @param webhook The parsed Quicknode webhook containing the event data
  * @returns A record of key-value pairs for the Telegram message
  */
-export default function composeTelegramMessage(quickAlert: QuickAlert) {
-  const { event, txHash } = quickAlert;
+export default function composeTelegramMessage(webhook: QuicknodeWebhook) {
+  const { event, txHash } = webhook;
   if (event.eventName !== EventType.ProposalExecuted) {
     throw new Error("Expected ProposalExecuted event");
   }
