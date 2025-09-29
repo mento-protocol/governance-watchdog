@@ -1,0 +1,9 @@
+---
+description: General project rules
+globs:
+alwaysApply: true
+---
+
+# Project Rules
+
+1. Always start a local development server via `npm start`
