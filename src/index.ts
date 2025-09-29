@@ -3,21 +3,30 @@ import type {
   Request,
   Response,
 } from "@google-cloud/functions-framework";
-import handleHealthCheckEvent from "./health-check";
+import { initializeEventRegistry } from "./event-registry/initialize-event-registry.js";
+import { processEvent } from "./event-registry/process-event.js";
 import parseRequestBody from "./parse-request-body";
-import handleProposalCanceledEvent from "./proposal-canceled";
-import handleProposalCreatedEvent from "./proposal-created";
-import handleProposalExecutedEvent from "./proposal-executed";
-import handleProposalQueuedEvent from "./proposal-queued";
 import { EventType } from "./types.js";
 import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
 import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
+
+// Global type declaration for registry initialization flag
+declare global {
+  var eventRegistryInitialized: boolean | undefined;
+}
 
 export const governanceWatchdog: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
   const isProduction = process.env.NODE_ENV !== "development";
+
+  // Initialize event registry on first run
+  if (!globalThis.eventRegistryInitialized) {
+    await initializeEventRegistry();
+    globalThis.eventRegistryInitialized = true;
+  }
+
   try {
     /**
      * We only want to accept requests in production that
@@ -63,37 +72,17 @@ export const governanceWatchdog: HttpFunction = async (
       }
 
       eventsProcessed++;
-      switch (quicknodeEvent.name) {
-        case EventType.ProposalCreated:
-          console.log("[DEBUG] ProposalCreated Event Request Body:", req.body);
-          await handleProposalCreatedEvent(quicknodeEvent);
-          break;
 
-        case EventType.ProposalQueued:
-          console.log("[DEBUG] ProposalQueued Event Request Body:", req.body);
-          await handleProposalQueuedEvent(quicknodeEvent);
-          break;
-
-        case EventType.ProposalExecuted:
-          console.log("[DEBUG] ProposalExecuted Event Request Body:", req.body);
-          await handleProposalExecutedEvent(quicknodeEvent);
-          break;
-
-        case EventType.ProposalCanceled:
-          console.log("[DEBUG] ProposalCanceled Event Request Body:", req.body);
-          await handleProposalCanceledEvent(quicknodeEvent);
-          break;
-
-        // Acts a health check for the service, as it's a frequently emitted event
-        case EventType.MedianUpdated:
-          handleHealthCheckEvent(quicknodeEvent);
-          break;
-
-        default:
-          console.warn(
-            `Unknown event type from payload: ${JSON.stringify(req.body)}`,
-          );
+      // Log debug info for known event types
+      if (quicknodeEvent.name !== EventType.MedianUpdated) {
+        console.log(
+          `[DEBUG] ${quicknodeEvent.name} Event Request Body:`,
+          req.body,
+        );
       }
+
+      // Process event using registry
+      await processEvent(quicknodeEvent);
     }
 
     if (eventsDeduplicated > 0) {
