@@ -1,7 +1,7 @@
+import { DiscordMessages } from "../event-notifications/discord-messages.js";
+import { TelegramMessages } from "../event-notifications/telegram-messages.js";
 import { EventType, ProposalQueuedEvent, QuicknodeEvent } from "../types.js";
 import { createEventValidator } from "../utils/event-validator.js";
-import composeDiscordMessage from "./compose-discord-message.js";
-import composeTelegramMessage from "./compose-telegram-message.js";
 
 export const proposalQueuedConfig = {
   eventType: EventType.ProposalQueued,
@@ -10,8 +10,8 @@ export const proposalQueuedConfig = {
     EventType.ProposalQueued,
     ["proposalId", "eta"],
   ),
-  composeDiscordMessage,
-  composeTelegramMessage,
+  composeDiscordMessage: DiscordMessages.proposalQueued,
+  composeTelegramMessage: TelegramMessages.proposalQueued,
   discordEmoji: "⏱️ Proposal Queued ⏱️",
   telegramEmoji: "⏱️ PROPOSAL QUEUED ⏱️",
 };

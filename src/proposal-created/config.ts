@@ -1,7 +1,7 @@
+import { DiscordMessages } from "../event-notifications/discord-messages.js";
+import { TelegramMessages } from "../event-notifications/telegram-messages.js";
 import { EventType, ProposalCreatedEvent, QuicknodeEvent } from "../types.js";
 import { createEventValidator } from "../utils/event-validator.js";
-import composeDiscordMessage from "./compose-discord-message.js";
-import composeTelegramMessage from "./compose-telegram-message.js";
 
 export const proposalCreatedConfig = {
   eventType: EventType.ProposalCreated,
@@ -42,8 +42,8 @@ export const proposalCreatedConfig = {
       );
     },
   ),
-  composeDiscordMessage,
-  composeTelegramMessage,
+  composeDiscordMessage: DiscordMessages.proposalCreated,
+  composeTelegramMessage: TelegramMessages.proposalCreated,
   discordEmoji: "**📝 New Governance Proposal 📝**",
   telegramEmoji: "🚨 NEW GOVERNANCE PROPOSAL 🚨",
 };

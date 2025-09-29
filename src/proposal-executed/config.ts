@@ -1,7 +1,7 @@
+import { DiscordMessages } from "../event-notifications/discord-messages.js";
+import { TelegramMessages } from "../event-notifications/telegram-messages.js";
 import { EventType, ProposalExecutedEvent, QuicknodeEvent } from "../types.js";
 import { createEventValidator } from "../utils/event-validator.js";
-import composeDiscordMessage from "./compose-discord-message.js";
-import composeTelegramMessage from "./compose-telegram-message.js";
 
 export const proposalExecutedConfig = {
   eventType: EventType.ProposalExecuted,
@@ -10,8 +10,8 @@ export const proposalExecutedConfig = {
     EventType.ProposalExecuted,
     ["proposalId"],
   ),
-  composeDiscordMessage,
-  composeTelegramMessage,
+  composeDiscordMessage: DiscordMessages.proposalExecuted,
+  composeTelegramMessage: TelegramMessages.proposalExecuted,
   discordEmoji: "**✅ Proposal Executed ✅**",
   telegramEmoji: "✅ PROPOSAL EXECUTED ✅",
 };
