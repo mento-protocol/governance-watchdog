@@ -31,75 +31,63 @@ export enum EventType {
   ProposalQueued = "ProposalQueued",
   ProposalExecuted = "ProposalExecuted",
   ProposalCanceled = "ProposalCanceled",
-  TimelockChange = "TimelockChange",
   MedianUpdated = "MedianUpdated",
   Unknown = "Unknown",
 }
 
 export interface ProposalCreatedEvent {
-  eventName: EventType.ProposalCreated;
-  args: {
-    calldatas: readonly `0x${string}`[];
-    description: string;
-    endBlock: bigint;
-    proposalId: bigint;
-    proposer: `0x${string}`;
-    signatures: readonly string[];
-    startBlock: bigint;
-    targets: readonly `0x${string}`[];
-    values: readonly bigint[];
-    version: number;
-  };
+  calldatas: `0x${string}` | readonly `0x${string}`[];
+  description: string;
+  endBlock: bigint;
+  name: EventType.ProposalCreated;
+  proposalId: bigint;
+  proposer: `0x${string}`;
+  signatures: string | readonly string[];
+  startBlock: bigint;
+  targets: `0x${string}` | readonly `0x${string}`[];
+  values: bigint | readonly bigint[];
+  version: number;
 }
 
-export interface HealthCheckEvent {
-  eventName: EventType.MedianUpdated;
-  args: {
-    token: `0x${string}`;
-    value: bigint;
-  };
+export interface MedianUpdatedEvent {
+  name: EventType.MedianUpdated;
+  token: `0x${string}`;
+  value: bigint;
 }
 
 export interface ProposalQueuedEvent {
-  eventName: EventType.ProposalQueued;
-  args: {
-    proposalId: bigint;
-    eta: bigint;
-  };
+  name: EventType.ProposalQueued;
+  proposalId: bigint;
+  eta: bigint;
 }
 
 export interface ProposalExecutedEvent {
-  eventName: EventType.ProposalExecuted;
-  args: {
-    proposalId: bigint;
-  };
+  name: EventType.ProposalExecuted;
+  proposalId: bigint;
 }
 
 export interface ProposalCanceledEvent {
-  eventName: EventType.ProposalCanceled;
-  args: {
-    proposalId: bigint;
-  };
+  name: EventType.ProposalCanceled;
+  proposalId: bigint;
 }
 
-export interface TimelockChangeEvent {
-  eventName: EventType.TimelockChange;
-  args: {
-    oldTimelock: `0x${string}`;
-    newTimelock: `0x${string}`;
-  };
-}
-
-export interface QuicknodeWebhook {
-  blockNumber: number;
-  event:
-    | ProposalCreatedEvent
-    | ProposalQueuedEvent
-    | ProposalExecutedEvent
-    | ProposalCanceledEvent
-    | TimelockChangeEvent
-    | HealthCheckEvent;
+// QuickNode payload structure
+export type QuicknodeEvent = {
+  address: string;
+  blockHash: string;
+  blockNumber: string;
+  logIndex: string;
+  name: EventType;
+  transactionHash: string;
   timelockId?: string;
-  txHash: string;
-  logIndex: number; // For granular deduplication between multiple events in same transaction
+} & (
+  | ProposalCreatedEvent
+  | ProposalQueuedEvent
+  | ProposalExecutedEvent
+  | ProposalCanceledEvent
+  | MedianUpdatedEvent
+);
+
+export interface QuicknodePayload {
+  result: QuicknodeEvent[];
 }

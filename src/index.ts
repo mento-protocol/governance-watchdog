@@ -3,14 +3,12 @@ import type {
   Request,
   Response,
 } from "@google-cloud/functions-framework";
-import assert from "assert/strict";
 import handleHealthCheckEvent from "./health-check";
 import parseRequestBody from "./parse-request-body";
 import handleProposalCanceledEvent from "./proposal-canceled";
 import handleProposalCreatedEvent from "./proposal-created";
 import handleProposalExecutedEvent from "./proposal-executed";
 import handleProposalQueuedEvent from "./proposal-queued";
-import handleTimelockChangeEvent from "./timelock-change";
 import { EventType } from "./types.js";
 import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
 import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
@@ -57,48 +55,42 @@ export const governanceWatchdog: HttpFunction = async (
     let eventsProcessed = 0;
     let eventsDeduplicated = 0;
 
-    for (const webhook of parseRequestBody(req.body)) {
+    for (const quicknodeEvent of parseRequestBody(req.body)) {
       // Skip duplicated events to prevent sending multiple notifications
-      if (isDuplicate(webhook)) {
+      if (isDuplicate(quicknodeEvent)) {
         eventsDeduplicated++;
         continue;
       }
 
       eventsProcessed++;
-      switch (webhook.event.eventName) {
+      switch (quicknodeEvent.name) {
         case EventType.ProposalCreated:
           console.log("[DEBUG] ProposalCreated Event Request Body:", req.body);
-          await handleProposalCreatedEvent(webhook);
+          await handleProposalCreatedEvent(quicknodeEvent);
           break;
 
         case EventType.ProposalQueued:
           console.log("[DEBUG] ProposalQueued Event Request Body:", req.body);
-          await handleProposalQueuedEvent(webhook);
+          await handleProposalQueuedEvent(quicknodeEvent);
           break;
 
         case EventType.ProposalExecuted:
           console.log("[DEBUG] ProposalExecuted Event Request Body:", req.body);
-          await handleProposalExecutedEvent(webhook);
+          await handleProposalExecutedEvent(quicknodeEvent);
           break;
 
         case EventType.ProposalCanceled:
           console.log("[DEBUG] ProposalCanceled Event Request Body:", req.body);
-          await handleProposalCanceledEvent(webhook);
-          break;
-
-        case EventType.TimelockChange:
-          console.log("[DEBUG] TimelockChange Event Request Body:", req.body);
-          await handleTimelockChangeEvent(webhook);
+          await handleProposalCanceledEvent(quicknodeEvent);
           break;
 
         // Acts a health check for the service, as it's a frequently emitted event
         case EventType.MedianUpdated:
-          handleHealthCheckEvent(webhook);
+          handleHealthCheckEvent(quicknodeEvent);
           break;
 
         default:
-          assert(
-            false,
+          console.warn(
             `Unknown event type from payload: ${JSON.stringify(req.body)}`,
           );
       }

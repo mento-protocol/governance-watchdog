@@ -1,5 +1,4 @@
 import { encodeAbiParameters, keccak256, parseAbiParameters } from "viem";
-
 import { ProposalCreatedEvent } from "../types";
 
 /**
@@ -14,14 +13,19 @@ import { ProposalCreatedEvent } from "../types";
 export default function getProposalTimeLockId(
   event: ProposalCreatedEvent,
 ): string {
-  const { targets, values, calldatas, description } = event.args;
+  const { targets, values, calldatas, description } = event;
   const descriptionHash = keccak256(new Uint8Array(Buffer.from(description)));
+
+  // Normalize fields to arrays if they are strings
+  const targetsArray = Array.isArray(targets) ? targets : [targets];
+  const valuesArray = Array.isArray(values) ? values : [values];
+  const calldatasArray = Array.isArray(calldatas) ? calldatas : [calldatas];
 
   return keccak256(
     encodeAbiParameters(
       parseAbiParameters("address[], uint256[], bytes[], uint256, bytes32"),
       // _timelockIds[proposalId] = _timelock.hashOperationBatch(targets, values, calldatas, 0, descriptionHash);
-      [targets, values, calldatas, 0n, descriptionHash],
+      [targetsArray, valuesArray, calldatasArray, 0n, descriptionHash],
     ),
   );
 }

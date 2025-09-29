@@ -1,24 +1,26 @@
+import assert from "assert/strict";
 import sendDiscordNotification from "../send-discord-notification.js";
 import sendTelegramNotification from "../send-telegram-notification.js";
-import { EventType, QuicknodeWebhook } from "../types.js";
+import { QuicknodeEvent } from "../types.js";
 import composeDiscordMessage from "./compose-discord-message.js";
 import composeTelegramMessage from "./compose-telegram-message.js";
+import isProposalCanceledEvent from "./is-proposal-canceled-event.js";
 
 export default async function handleProposalCanceledEvent(
-  webhook: QuicknodeWebhook,
+  event: QuicknodeEvent,
 ): Promise<void> {
-  const { event, blockNumber } = webhook;
-  if (event.eventName !== EventType.ProposalCanceled) {
-    throw new Error("Expected ProposalCanceled event");
-  }
+  assert(
+    isProposalCanceledEvent(event),
+    `Expected ProposalCanceled event but was ${JSON.stringify(event)}`,
+  );
 
-  console.log("ProposalCanceled event from block", blockNumber);
+  console.info("ProposalCanceled event found at block", event.blockNumber);
 
   try {
-    console.log("Sending Discord notification for ProposalCanceled event...");
-    const discordMsg = composeDiscordMessage(webhook);
+    console.info("Sending Discord notification for ProposalCanceled event...");
+    const discordMsg = composeDiscordMessage(event);
     await sendDiscordNotification(discordMsg.content, discordMsg.embed);
-    console.log(
+    console.info(
       "Successfully sent Discord notification for ProposalCanceled event",
     );
   } catch (error) {
@@ -30,9 +32,9 @@ export default async function handleProposalCanceledEvent(
 
   try {
     console.info("Sending Telegram notification for ProposalCanceled event...");
-    const msgData = composeTelegramMessage(webhook);
+    const msgData = composeTelegramMessage(event);
     await sendTelegramNotification("❌ PROPOSAL CANCELED ❌", msgData);
-    console.log(
+    console.info(
       "Successfully sent Telegram notification for ProposalCanceled event",
     );
   } catch (error) {

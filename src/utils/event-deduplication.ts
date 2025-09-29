@@ -1,4 +1,4 @@
-import { EventType, QuicknodeWebhook } from "../types.js";
+import { EventType, QuicknodeEvent } from "../types.js";
 
 type EventId = string;
 type Timestamp = number;
@@ -15,33 +15,23 @@ const MAX_CACHE_SIZE = 100;
 /**
  * Generates a unique ID for an event based on its properties
  */
-function generateEventId(webhook: QuicknodeWebhook): EventId {
-  const { event, txHash, logIndex } = webhook;
-
+function generateEventId(event: QuicknodeEvent): EventId {
   // For different event types, extract the relevant identifying data
   let uniqueData = "";
 
-  switch (event.eventName) {
+  switch (event.name) {
     // All proposal-related events have a proposalId
     case EventType.ProposalCreated:
     case EventType.ProposalQueued:
     case EventType.ProposalExecuted:
     case EventType.ProposalCanceled:
-      uniqueData =
-        "proposalId" in event.args ? event.args.proposalId.toString() : "";
-      break;
-
-    // TimelockChange event has an oldTimelock and a newTimelock
-    case EventType.TimelockChange:
-      if ("oldTimelock" in event.args && "newTimelock" in event.args) {
-        uniqueData = `${event.args.oldTimelock}-${event.args.newTimelock}`;
-      }
+      uniqueData = "proposalId" in event ? event.proposalId.toString() : "";
       break;
 
     // Health check event has a token and a value
     case EventType.MedianUpdated:
-      if ("token" in event.args && "value" in event.args) {
-        uniqueData = `${event.args.token}-${event.args.value.toString()}`;
+      if ("token" in event && "value" in event) {
+        uniqueData = `${event.token}-${event.value.toString()}`;
       }
       break;
 
@@ -50,9 +40,7 @@ function generateEventId(webhook: QuicknodeWebhook): EventId {
       uniqueData = "";
   }
 
-  return `${event.eventName}-${uniqueData}-${txHash}-${String(
-    webhook.blockNumber,
-  )}-${String(logIndex)}`;
+  return `${event.name}-${uniqueData}-${event.transactionHash}-${event.blockNumber}-${event.logIndex}`;
 }
 
 /**
@@ -72,29 +60,26 @@ function cleanupOldEntries(): void {
 
 /**
  * Checks if an event is a duplicate (meaning: the same EventID has been processed recently)
- * @param webhook The event to check
+ * @param event The event to check
  * @returns true if the event is a duplicate, false otherwise
  */
-export function isDuplicate(webhook: QuicknodeWebhook): boolean {
-  const eventId = generateEventId(webhook);
+export function isDuplicate(event: QuicknodeEvent): boolean {
+  const eventId = generateEventId(event);
   const now = Date.now();
 
   if (process.env.DEBUG) {
     console.log(
-      `[DEDUP] Checking event: ${webhook.event.eventName} (logIndex: ${String(
-        webhook.logIndex,
-      )}, txHash: ${webhook.txHash})`,
+      `[DEDUP] Checking event: ${event.name} (logIndex: ${event.logIndex}, txHash: ${event.transactionHash})`,
     );
 
     if (
-      webhook.event.eventName === EventType.MedianUpdated &&
-      "token" in webhook.event.args &&
-      "value" in webhook.event.args
+      event.name === EventType.MedianUpdated &&
+      "token" in event &&
+      "value" in event
     ) {
       console.log(
-        `[DEDUP] MedianUpdated details - token: ${
-          webhook.event.args.token
-        }, value: ${String(webhook.event.args.value)}`,
+        `[DEDUP] MedianUpdated details - token: ${event.token},
+         value: ${String(event.value)}`,
       );
     }
     console.log(`[DEDUP] Generated eventId: ${eventId}`);

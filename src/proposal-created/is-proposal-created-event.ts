@@ -1,21 +1,52 @@
-import type { DecodeEventLogReturnType } from "viem";
-import type GovernorABI from "../abis/governor.abi.js";
-import type { ProposalCreatedEvent } from "../types.js";
+import { EventType, ProposalCreatedEvent, QuicknodeEvent } from "../types.js";
 
 export default function isProposalCreatedEvent(
-  event: DecodeEventLogReturnType<typeof GovernorABI> | null | undefined,
-): event is ProposalCreatedEvent {
+  event: unknown,
+): event is QuicknodeEvent & ProposalCreatedEvent {
   if (
-    event === null ||
-    event === undefined ||
+    !event ||
     typeof event !== "object" ||
-    !("args" in event)
+    !("name" in event) ||
+    event.name !== EventType.ProposalCreated
   ) {
     return false;
   }
+
+  const eventObj = event as Record<string, unknown>;
+
+  // Check required fields exist
+  const hasRequiredFields = [
+    "calldatas",
+    "description",
+    "endBlock",
+    "proposalId",
+    "proposer",
+    "signatures",
+    "startBlock",
+    "targets",
+    "timelockId",
+    "values",
+  ].every((field) => field in eventObj);
+
+  if (!hasRequiredFields) {
+    return false;
+  }
+
+  // Check that calldatas, targets, and values are either string or array
+  const isValidCalldatas =
+    typeof eventObj.calldatas === "string" || Array.isArray(eventObj.calldatas);
+
+  const isValidTargets =
+    typeof eventObj.targets === "string" || Array.isArray(eventObj.targets);
+
+  const isValidValues =
+    typeof eventObj.values === "string" || Array.isArray(eventObj.values);
+
+  const isValidSignatures =
+    typeof eventObj.signatures === "string" ||
+    Array.isArray(eventObj.signatures);
+
   return (
-    "proposer" in event.args &&
-    "description" in event.args &&
-    "proposalId" in event.args
+    isValidCalldatas && isValidTargets && isValidValues && isValidSignatures
   );
 }

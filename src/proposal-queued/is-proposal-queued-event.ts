@@ -1,17 +1,15 @@
-import { EventType, ProposalQueuedEvent } from "../types";
+import { EventType, ProposalQueuedEvent, QuicknodeEvent } from "../types";
 
 export default function isProposalQueuedEvent(
   event: unknown,
-): event is ProposalQueuedEvent {
+): event is QuicknodeEvent & ProposalQueuedEvent {
   return (
-    typeof event === "object" &&
     event !== null &&
-    "eventName" in event &&
-    event.eventName === EventType.ProposalQueued &&
-    "args" in event &&
-    typeof event.args === "object" &&
-    event.args !== null &&
-    "proposalId" in event.args &&
-    "eta" in event.args
+    event !== undefined &&
+    typeof event === "object" &&
+    "name" in event &&
+    event.name === EventType.ProposalQueued &&
+    "proposalId" in event &&
+    "eta" in event
   );
 }

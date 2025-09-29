@@ -1,24 +1,20 @@
 import { EmbedBuilder } from "discord.js";
-import type { QuicknodeWebhook } from "../types.js";
-import { EventType } from "../types.js";
+import { ProposalCreatedEvent, QuicknodeEvent } from "../types.js";
+import { safeJsonParseProperty } from "../utils/safe-json-parse.js";
 
 /**
  * Composes a Discord embed message for a proposal created event
  * @param webhook The parsed Quicknode webhook containing the event data
  * @returns An object containing the content and embed for the Discord message
  */
-export default function composeDiscordMessage(webhook: QuicknodeWebhook) {
-  const { event, timelockId, txHash } = webhook;
+export default function composeDiscordMessage(
+  event: QuicknodeEvent & ProposalCreatedEvent,
+) {
+  const titleValue = safeJsonParseProperty(event.description, "title");
+  const title =
+    typeof titleValue === "string" ? titleValue : "Proposal Created";
 
-  if (event.eventName !== EventType.ProposalCreated) {
-    throw new Error("Expected ProposalCreated event");
-  }
-
-  const { title } = JSON.parse(event.args.description) as {
-    title: string;
-  };
-
-  const proposalLink = `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`;
+  const proposalLink = `https://governance.mento.org/proposals/${event.proposalId.toString()}`;
 
   const embed = new EmbedBuilder()
     .setTitle(`Title: ${title}`)
@@ -28,15 +24,15 @@ export default function composeDiscordMessage(webhook: QuicknodeWebhook) {
     })
     .addFields({
       name: "Proposer",
-      value: `https://celoscan.io/address/${event.args.proposer}`,
+      value: `https://celoscan.io/address/${event.proposer}`,
     })
     .addFields({
       name: "Timelock ID",
-      value: timelockId ?? "N/A",
+      value: event.timelockId ?? "N/A",
     })
     .addFields({
       name: "Proposal Transaction",
-      value: `https://celoscan.io/tx/${txHash}`,
+      value: `https://celoscan.io/tx/${event.transactionHash}`,
     })
     .setColor(0xa6e5f6);
 

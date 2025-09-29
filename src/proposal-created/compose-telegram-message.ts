@@ -1,27 +1,24 @@
-import type { QuicknodeWebhook } from "../types.js";
-import { EventType } from "../types.js";
+import { ProposalCreatedEvent, QuicknodeEvent } from "../types.js";
+import { safeJsonParseProperty } from "../utils/safe-json-parse.js";
 
 /**
  * Composes a Telegram message for a proposal created event
- * @param webhook The parsed Quicknode webhook containing the event data
+ * @param event The parsed Quicknode webhook containing the event data
  * @returns A record of key-value pairs for the Telegram message
  */
-export default function composeTelegramMessage(webhook: QuicknodeWebhook) {
-  const { event, timelockId, txHash } = webhook;
-  if (event.eventName !== EventType.ProposalCreated) {
-    throw new Error("Expected ProposalCreated event");
-  }
-
-  const { title } = JSON.parse(event.args.description) as {
-    title: string;
-  };
+export default function composeTelegramMessage(
+  event: QuicknodeEvent & ProposalCreatedEvent,
+) {
+  const titleValue = safeJsonParseProperty(event.description, "title");
+  const title =
+    typeof titleValue === "string" ? titleValue : "Proposal Created";
 
   return {
     Description: `Please review the proposal and check if anything looks off.`,
     Title: title,
-    "Proposal Link": `https://governance.mento.org/proposals/${event.args.proposalId.toString()}`,
-    "Proposal Transaction": `https://celoscan.io/tx/${txHash}`,
-    "Proposer Address": `https://celoscan.io/address/${event.args.proposer}`,
-    "Timelock ID": timelockId ?? "N/A",
+    "Proposal Link": `https://governance.mento.org/proposals/${event.proposalId.toString()}`,
+    "Proposal Transaction": `https://celoscan.io/tx/${event.transactionHash}`,
+    "Proposer Address": `https://celoscan.io/address/${event.proposer}`,
+    "Timelock ID": event.timelockId ?? "N/A",
   };
 }

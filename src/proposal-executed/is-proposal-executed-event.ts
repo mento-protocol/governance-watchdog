@@ -1,16 +1,14 @@
-import { EventType, ProposalExecutedEvent } from "../types";
+import { EventType, ProposalExecutedEvent, QuicknodeEvent } from "../types";
 
 export default function isProposalExecutedEvent(
   event: unknown,
-): event is ProposalExecutedEvent {
+): event is QuicknodeEvent & ProposalExecutedEvent {
   return (
-    typeof event === "object" &&
     event !== null &&
-    "eventName" in event &&
-    event.eventName === EventType.ProposalExecuted &&
-    "args" in event &&
-    typeof event.args === "object" &&
-    event.args !== null &&
-    "proposalId" in event.args
+    event !== undefined &&
+    typeof event === "object" &&
+    "name" in event &&
+    event.name === EventType.ProposalExecuted &&
+    "proposalId" in event
   );
 }
