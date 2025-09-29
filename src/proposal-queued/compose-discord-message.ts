@@ -1,5 +1,9 @@
-import { EmbedBuilder } from "discord.js";
 import { ProposalQueuedEvent, QuicknodeEvent } from "../types.js";
+import {
+  createBaseDiscordEmbed,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 
 /**
  * Composes a Discord embed message for a proposal queued event
@@ -10,10 +14,10 @@ export default function composeDiscordMessage(
   event: QuicknodeEvent & ProposalQueuedEvent,
 ) {
   const executionTime = new Date(Number(event.eta) * 1000).toUTCString();
-  const proposalLink = `https://governance.mento.org/proposals/${event.proposalId.toString()}`;
+  const proposalLink = createProposalLink(event.proposalId);
+  const transactionLink = createTransactionLink(event.transactionHash);
 
-  const embed = new EmbedBuilder()
-    .setTitle("Proposal Queued")
+  const embed = createBaseDiscordEmbed("Proposal Queued", 0xf5a623) // Orange color for queued proposals
     .setDescription(
       `A proposal has been queued for execution on ${executionTime}.`,
     )
@@ -27,9 +31,8 @@ export default function composeDiscordMessage(
     })
     .addFields({
       name: "Queue Transaction",
-      value: `https://celoscan.io/tx/${event.transactionHash}`,
-    })
-    .setColor(0xf5a623); // Orange color for queued proposals
+      value: transactionLink,
+    });
 
   return {
     content: "⏱️ Proposal Queued ⏱️",

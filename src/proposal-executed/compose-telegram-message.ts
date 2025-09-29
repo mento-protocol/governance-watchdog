@@ -1,4 +1,9 @@
 import { ProposalExecutedEvent, QuicknodeEvent } from "../types.js";
+import {
+  createBaseTelegramMessage,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 
 /**
  * Composes a Telegram message for a proposal executed event
@@ -9,8 +14,10 @@ export default function composeTelegramMessage(
   event: QuicknodeEvent & ProposalExecutedEvent,
 ) {
   return {
-    Description: "The proposal has been executed successfully!",
-    "Proposal Link": `https://governance.mento.org/proposals/${event.proposalId.toString()}`,
-    "Execution Transaction": `https://celoscan.io/tx/${event.transactionHash}`,
+    ...createBaseTelegramMessage(
+      "The proposal has been executed successfully!",
+    ),
+    "Proposal Link": createProposalLink(event.proposalId),
+    "Execution Transaction": createTransactionLink(event.transactionHash),
   };
 }

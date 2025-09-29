@@ -1,5 +1,9 @@
-import { EmbedBuilder } from "discord.js";
-import { ProposalCanceledEvent, QuicknodeEvent } from "./../types";
+import { ProposalCanceledEvent, QuicknodeEvent } from "../types.js";
+import {
+  createBaseDiscordEmbed,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 
 /**
  * Composes a Discord embed message for a proposal canceled event
@@ -9,10 +13,10 @@ import { ProposalCanceledEvent, QuicknodeEvent } from "./../types";
 export default function composeDiscordMessage(
   event: QuicknodeEvent & ProposalCanceledEvent,
 ) {
-  const proposalLink = `https://governance.mento.org/proposals/${event.proposalId.toString()}`;
+  const proposalLink = createProposalLink(event.proposalId);
+  const transactionLink = createTransactionLink(event.transactionHash);
 
-  const embed = new EmbedBuilder()
-    .setTitle("Proposal Canceled")
+  const embed = createBaseDiscordEmbed("Proposal Canceled", 0xff5252) // Red color for canceled proposals
     .setDescription(
       `The proposal has been canceled and will not proceed further.`,
     )
@@ -22,9 +26,8 @@ export default function composeDiscordMessage(
     })
     .addFields({
       name: "Cancellation Transaction",
-      value: `https://celoscan.io/tx/${event.transactionHash}`,
-    })
-    .setColor(0xff5252); // Red color for canceled proposals
+      value: transactionLink,
+    });
 
   return {
     content: "❌ Proposal Canceled ❌",

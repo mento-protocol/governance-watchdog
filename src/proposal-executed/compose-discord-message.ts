@@ -1,5 +1,9 @@
-import { EmbedBuilder } from "discord.js";
 import { ProposalExecutedEvent, QuicknodeEvent } from "../types.js";
+import {
+  createBaseDiscordEmbed,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 
 /**
  * Composes a Discord embed message for a proposal executed event
@@ -9,10 +13,10 @@ import { ProposalExecutedEvent, QuicknodeEvent } from "../types.js";
 export default function composeDiscordMessage(
   event: QuicknodeEvent & ProposalExecutedEvent,
 ) {
-  const proposalLink = `https://governance.mento.org/proposals/${event.proposalId.toString()}`;
+  const proposalLink = createProposalLink(event.proposalId);
+  const transactionLink = createTransactionLink(event.transactionHash);
 
-  const embed = new EmbedBuilder()
-    .setTitle("Proposal Executed")
+  const embed = createBaseDiscordEmbed("Proposal Executed", 0x4caf50) // Green color for executed proposals
     .setDescription(`The proposal has been executed successfully!`)
     .addFields({
       name: "Proposal Link",
@@ -20,9 +24,8 @@ export default function composeDiscordMessage(
     })
     .addFields({
       name: "Execution Transaction",
-      value: `https://celoscan.io/tx/${event.transactionHash}`,
-    })
-    .setColor(0x4caf50); // Green color for executed proposals
+      value: transactionLink,
+    });
 
   return {
     content: "✅ Proposal Executed ✅",

@@ -1,5 +1,10 @@
-import { EmbedBuilder } from "discord.js";
 import { ProposalCreatedEvent, QuicknodeEvent } from "../types.js";
+import {
+  createAddressLink,
+  createBaseDiscordEmbed,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 import { safeJsonParseProperty } from "../utils/safe-json-parse.js";
 
 /**
@@ -14,17 +19,18 @@ export default function composeDiscordMessage(
   const title =
     typeof titleValue === "string" ? titleValue : "Proposal Created";
 
-  const proposalLink = `https://governance.mento.org/proposals/${event.proposalId.toString()}`;
+  const proposalLink = createProposalLink(event.proposalId);
+  const proposerLink = createAddressLink(event.proposer);
+  const transactionLink = createTransactionLink(event.transactionHash);
 
-  const embed = new EmbedBuilder()
-    .setTitle(`Title: ${title}`)
+  const embed = createBaseDiscordEmbed(`Title: ${title}`, 0xa6e5f6)
     .addFields({
       name: "Proposal Link",
       value: proposalLink,
     })
     .addFields({
       name: "Proposer",
-      value: `https://celoscan.io/address/${event.proposer}`,
+      value: proposerLink,
     })
     .addFields({
       name: "Timelock ID",
@@ -32,9 +38,8 @@ export default function composeDiscordMessage(
     })
     .addFields({
       name: "Proposal Transaction",
-      value: `https://celoscan.io/tx/${event.transactionHash}`,
-    })
-    .setColor(0xa6e5f6);
+      value: transactionLink,
+    });
 
   return {
     content: "**📝 New Governance Proposal 📝**",

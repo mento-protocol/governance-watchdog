@@ -1,4 +1,10 @@
 import { ProposalCreatedEvent, QuicknodeEvent } from "../types.js";
+import {
+  createAddressLink,
+  createBaseTelegramMessage,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 import { safeJsonParseProperty } from "../utils/safe-json-parse.js";
 
 /**
@@ -14,11 +20,13 @@ export default function composeTelegramMessage(
     typeof titleValue === "string" ? titleValue : "Proposal Created";
 
   return {
-    Description: `Please review the proposal and check if anything looks off.`,
+    ...createBaseTelegramMessage(
+      `Please review the proposal and check if anything looks off.`,
+    ),
     Title: title,
-    "Proposal Link": `https://governance.mento.org/proposals/${event.proposalId.toString()}`,
-    "Proposal Transaction": `https://celoscan.io/tx/${event.transactionHash}`,
-    "Proposer Address": `https://celoscan.io/address/${event.proposer}`,
+    "Proposal Link": createProposalLink(event.proposalId),
+    "Proposal Transaction": createTransactionLink(event.transactionHash),
+    "Proposer Address": createAddressLink(event.proposer),
     "Timelock ID": event.timelockId ?? "N/A",
   };
 }

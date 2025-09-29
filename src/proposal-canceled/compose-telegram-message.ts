@@ -1,4 +1,9 @@
 import { ProposalCanceledEvent, QuicknodeEvent } from "../types.js";
+import {
+  createBaseTelegramMessage,
+  createProposalLink,
+  createTransactionLink,
+} from "../utils/message-composition.js";
 
 /**
  * Composes a Telegram message for a proposal canceled event
@@ -9,8 +14,10 @@ export default function composeTelegramMessage(
   event: QuicknodeEvent & ProposalCanceledEvent,
 ) {
   return {
-    Description: "The proposal has been canceled and will not proceed further.",
-    "Proposal Link": `https://governance.mento.org/proposals/${event.proposalId.toString()}`,
-    "Cancellation Transaction": `https://celoscan.io/tx/${event.transactionHash}`,
+    ...createBaseTelegramMessage(
+      "The proposal has been canceled and will not proceed further.",
+    ),
+    "Proposal Link": createProposalLink(event.proposalId),
+    "Cancellation Transaction": createTransactionLink(event.transactionHash),
   };
 }
