@@ -10,8 +10,6 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 - [Running and testing the Cloud Function locally](#running-and-testing-the-cloud-function-locally)
 - [Testing the Deployed Cloud Function](#testing-the-deployed-cloud-function)
 - [Updating the Cloud Function](#updating-the-cloud-function)
-- [Debugging Problems](#debugging-problems)
-  - [View Logs](#view-logs)
 - [Developing QuickNode Webhook Filter Functions](#developing-quicknode-webhook-filter-functions)
   - [Workflow](#workflow)
   - [Filter Function Structure](#filter-function-structure)
@@ -185,38 +183,46 @@ You have two options, using `terraform` or the `gcloud` cli. Both are perfectly 
      - Different commands to remember when updating infra components vs cloud function source code
      - Will only work for updating a pre-existing cloud function's code, will fail for a first-time deploy
 
-## Debugging Problems
-
-### View Logs
-
-For most problems, you'll likely want to check the cloud function logs first.
-
-- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
-
 ## Developing QuickNode Webhook Filter Functions
 
-QuickNode webhooks use JavaScript filter functions that run on QuickNode's servers to determine which blockchain events should trigger notifications to our Cloud Function. These filters are base64-encoded and stored in [`infra/quicknode.tf`](./infra/quicknode.tf) under the `filter_function` properties.
+QuickNode webhooks use [JavaScript filter functions](https://www.quicknode.com/docs/streams/filters?#example-filter-functions) that run on QuickNode's servers to determine which blockchain events should trigger notifications to our Cloud Function. These filters are base64-encoded and stored in [`infra/quicknode.tf`](./infra/quicknode.tf) under the `filter_function` properties.
 
 ### Workflow
 
-1. **Open the filter function** in plain JavaScript at [`infra/quicknode-filter-functions/sorted-oracles.js`](./infra/quicknode-filter-functions/sorted-oracles.js)
+1. [OPTIONAL] If you want to first double-check which code is actually deployed right now:
+   - Navigate to the [QuickNode Webhooks Dashboard](https://dashboard.quicknode.com/webhooks)
+   - Click the Webhook you're developing
+   - Copy the webhook ID from the URL into your clipboard
+   - Obtain the current filter function via:
 
-2. **Enable hot-reload** to automatically update the Terraform file:
+     ```bash
+     curl -X GET \
+        "https://api.quicknode.com/webhooks/rest/v1/webhooks/$webhook_id" \
+        -H "accept: application/json" \
+        -H "x-api-key: $quicknode_api_key" \
+        | jq -r .filter_function \
+        | base64 -d
+     ```
+
+2. **Open the filter function** in plain JavaScript at [`infra/quicknode-filter-functions/sorted-oracles.js`](./infra/quicknode-filter-functions/sorted-oracles.js)
+
+3. **Enable hot-reload** to automatically update the Terraform file:
 
    ```sh
+   # Run the cmd for the webhook you're interested in
    npm run dev:webhook:healthcheck
    ```
 
-   This will watch for changes to `sorted-oracles.js` and automatically:
+   This will watch for changes to `sorted-oracles.js` (which we're using as the healthcheck) and automatically:
    - Base64 encode the updated function
    - Update the `filter_function` field in the `quicknode_webhook_healthcheck` resource in `quicknode.tf`
    - Create a timestamped backup of `quicknode.tf` before making changes
 
-3. **Make your changes** to `sorted-oracles.js` and save the file. The script will automatically update `quicknode.tf`.
+4. **Make your changes** to `sorted-oracles.js` and save the file. The script will automatically update `quicknode.tf`.
 
-4. **Review the changes** with `git diff infra/quicknode.tf` to ensure the filter function was updated correctly.
+5. **Review the changes** with `git diff infra/quicknode.tf` to ensure the filter function was updated correctly.
 
-5. **Deploy to QuickNode**:
+6. **Deploy to QuickNode**:
 
    ```sh
    cd infra
@@ -237,7 +243,7 @@ The filter functions follow QuickNode's `evmAbiFilter` template:
 - They can include custom filtering logic (e.g., filtering by specific token addresses)
 - They return matching events or `null` if no matches found
 
-See the QuickNode Webhooks documentation for more details on filter function syntax.
+See the [QuickNode Webhooks documentation](https://www.quicknode.com/docs/webhooks/getting-started) for more details on filter function syntax.
 
 ## Deploying from scratch
 

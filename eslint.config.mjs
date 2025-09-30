@@ -10,6 +10,31 @@ export default tseslint.config(
     extends: [tseslint.configs.disableTypeChecked],
   },
   {
+    files: ["**/*.js"],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: {
+        require: "readonly",
+        module: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        process: "readonly",
+        Buffer: "readonly",
+        console: "readonly",
+        decodeEVMReceipts: "readonly", // QuickNode global function
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off", // CommonJS is standard for these Node.js scripts
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          varsIgnorePattern: "^main$", // QuickNode filter functions define main but don't call it
+        },
+      ],
+    },
+  },
+  {
     files: ["**/*.ts"],
     ignores: ["**/*.mjs", "dist/**"],
     languageOptions: {
