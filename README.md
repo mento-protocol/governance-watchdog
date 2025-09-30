@@ -12,6 +12,9 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 - [Updating the Cloud Function](#updating-the-cloud-function)
 - [Debugging Problems](#debugging-problems)
   - [View Logs](#view-logs)
+- [Developing QuickNode Webhook Filter Functions](#developing-quicknode-webhook-filter-functions)
+  - [Workflow](#workflow)
+  - [Filter Function Structure](#filter-function-structure)
 
 ![Architecture Diagram](arch-diagram.png)
 
@@ -189,6 +192,52 @@ You have two options, using `terraform` or the `gcloud` cli. Both are perfectly 
 For most problems, you'll likely want to check the cloud function logs first.
 
 - `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
+
+## Developing QuickNode Webhook Filter Functions
+
+QuickNode webhooks use JavaScript filter functions that run on QuickNode's servers to determine which blockchain events should trigger notifications to our Cloud Function. These filters are base64-encoded and stored in [`infra/quicknode.tf`](./infra/quicknode.tf) under the `filter_function` properties.
+
+### Workflow
+
+1. **Open the filter function** in plain JavaScript at [`infra/quicknode-filter-functions/sorted-oracles.js`](./infra/quicknode-filter-functions/sorted-oracles.js)
+
+2. **Enable hot-reload** to automatically update the Terraform file:
+
+   ```sh
+   npm run dev:webhook:healthcheck
+   ```
+
+   This will watch for changes to `sorted-oracles.js` and automatically:
+   - Base64 encode the updated function
+   - Update the `filter_function` field in the `quicknode_webhook_healthcheck` resource in `quicknode.tf`
+   - Create a timestamped backup of `quicknode.tf` before making changes
+
+3. **Make your changes** to `sorted-oracles.js` and save the file. The script will automatically update `quicknode.tf`.
+
+4. **Review the changes** with `git diff infra/quicknode.tf` to ensure the filter function was updated correctly.
+
+5. **Deploy to QuickNode**:
+
+   ```sh
+   cd infra
+   terraform plan   # Review changes
+   terraform apply  # Deploy
+   ```
+
+   **⚠️ Important:** QuickNode rejects updates to active webhooks. You must either:
+   - Pause the webhook first (set `status = "paused"` in the resource, run `terraform apply`, then update the filter function, then set `status = "active"` and `terraform apply` again)
+   - OR comment out the webhook resource, `terraform apply` to delete it, uncomment with your changes, and `terraform apply` to recreate it
+
+### Filter Function Structure
+
+The filter functions follow QuickNode's `evmAbiFilter` template:
+
+- They decode blockchain events using the contract ABI
+- They filter for specific event types and contract addresses
+- They can include custom filtering logic (e.g., filtering by specific token addresses)
+- They return matching events or `null` if no matches found
+
+See the QuickNode Webhooks documentation for more details on filter function syntax.
 
 ## Deploying from scratch
 
