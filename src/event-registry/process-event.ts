@@ -9,6 +9,9 @@ export async function processEvent(event: QuicknodeEvent): Promise<void> {
   if (event.name === EventType.MedianUpdated) {
     const healthCheckHandler = eventRegistry.getSpecialHandler("healthCheck");
     if (healthCheckHandler) {
+      if (process.env.DEBUG) {
+        console.log(`[DEBUG] Health check event: ${event.name}`);
+      }
       void healthCheckHandler(event);
       return;
     }
@@ -19,6 +22,6 @@ export async function processEvent(event: QuicknodeEvent): Promise<void> {
   if (handler) {
     await handler(event);
   } else {
-    console.warn(`No handler registered for event type: ${event.name}`);
+    console.log(`No handler registered for event type: ${event.name}`);
   }
 }

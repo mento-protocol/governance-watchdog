@@ -26,7 +26,9 @@ export default function parseRequestBody(
       : EventType.Unknown;
 
     if (eventType === EventType.Unknown) {
-      console.warn(`Unknown event type: '${event.name}'`);
+      if (process.env.DEBUG) {
+        console.log(`Skipping unknown event: '${event.name}'.`);
+      }
       // Skip events we're not interested in
       continue;
     }

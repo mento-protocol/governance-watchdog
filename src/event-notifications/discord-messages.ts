@@ -45,13 +45,21 @@ export const DiscordMessages = {
   ) => {
     const theme = PROPOSAL_THEMES.created;
 
-    return new DiscordMessageBuilder({
-      ...theme,
-      title: event.description
-        ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          (JSON.parse(event.description).title as string)
-        : theme.title,
-    })
+    // Safely parse the description to extract title
+    let title: string = theme.title;
+    if (event.description) {
+      try {
+        const parsed = JSON.parse(event.description) as { title?: string };
+        if (typeof parsed.title === "string") {
+          title = parsed.title;
+        }
+      } catch {
+        // If parsing fails, use the default title
+        title = theme.title;
+      }
+    }
+
+    return new DiscordMessageBuilder({ ...theme, title }, undefined)
       .setContent(theme.emoji)
       .addProposalLink(event.proposalId)
       .addProposerLink(event.proposer)
@@ -87,7 +95,7 @@ export const DiscordMessages = {
       theme,
       "The proposal has been executed successfully!",
     )
-      .setContent("**❌ Proposal Canceled ❌**")
+      .setContent(theme.emoji)
       .addProposalLink(event.proposalId)
       .addTransactionLink(event.transactionHash, "Execution")
       .build();

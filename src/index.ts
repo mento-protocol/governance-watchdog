@@ -29,9 +29,9 @@ export const governanceWatchdog: HttpFunction = async (
 
   try {
     /**
-     * We only want to accept requests in production that
+     * In production, we only want to accept requests that
      *  1) Come from Quicknode
-     *  2) or have an auth token (which we use for testing in production)
+     *  2) OR have an auth token (which we use for testing in production)
      */
     if (isProduction) {
       if (await isFromQuicknode(req)) {

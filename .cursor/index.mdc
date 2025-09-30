@@ -7,3 +7,4 @@ alwaysApply: true
 # Project Rules
 
 1. Always start a local development server via `npm start`
+1. Always run `npx tsc` after your changes to ensure we have no TypeScript issues

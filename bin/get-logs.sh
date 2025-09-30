@@ -22,8 +22,11 @@ get_function_logs() {
 		--sort-by TIME_UTC)
 
 	# Format logs
-	echo "${raw_logs}" | jq -r '.[] | if .level == "E" then
+	echo "${raw_logs}" | jq -r '.[] |
+if .level == "E" then
   "\u001b[31m[\(.level)]\u001b[0m \u001b[33m\(.time_utc)\u001b[0m: \(.log)"
+elif .level == null or .level == "" then
+  "[NULL] \u001b[33m\(.time_utc)\u001b[0m: \(.log)"
 else
   "[\(.level)] \u001b[33m\(.time_utc)\u001b[0m: \(.log)"
 end'
