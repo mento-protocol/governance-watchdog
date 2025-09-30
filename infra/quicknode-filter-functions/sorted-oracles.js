@@ -36,9 +36,7 @@ function main(stream) {
           // Only include MedianUpdated events with the specific token address
           if (
             log.name === "MedianUpdated" &&
-            log.inputs &&
-            log.inputs.token &&
-            log.inputs.token.toLowerCase() === targetTokenAddress
+            log.token.toLowerCase() === targetTokenAddress
           ) {
             result.push({
               transactionHash: receipt.transactionHash,
