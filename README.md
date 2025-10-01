@@ -10,8 +10,10 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 - [Running and testing the Cloud Function locally](#running-and-testing-the-cloud-function-locally)
 - [Testing the Deployed Cloud Function](#testing-the-deployed-cloud-function)
 - [Updating the Cloud Function](#updating-the-cloud-function)
-- [Debugging Problems](#debugging-problems)
-  - [View Logs](#view-logs)
+- [Adding New Events](#adding-new-events)
+- [Developing QuickNode Webhook Filter Functions](#developing-quicknode-webhook-filter-functions)
+  - [Workflow](#workflow)
+  - [Filter Function Structure](#filter-function-structure)
 
 ![Architecture Diagram](arch-diagram.png)
 
@@ -148,7 +150,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 
 ## Testing the Deployed Cloud Function
 
-You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a Quicknode Webhook would send to the cloud function:
+You can test the deployed cloud function manually by using the `src/events/fixtures/<event-type>.fixture.json` which contains a similar payload to what a Quicknode Webhook would send to the cloud function:
 
 ```sh
 npm run test:prod:<EventName> # i.e. npm run test:prod:ProposalCreated
@@ -182,14 +184,81 @@ You have two options, using `terraform` or the `gcloud` cli. Both are perfectly 
      - Different commands to remember when updating infra components vs cloud function source code
      - Will only work for updating a pre-existing cloud function's code, will fail for a first-time deploy
 
-## Debugging Problems
+## Adding New Events
 
-### View Logs
+Want to add support for new blockchain events? See the detailed guide in **[ADDING_EVENTS.md](./ADDING_EVENTS.md)**.
 
-For most problems, you'll likely want to check the cloud function logs first.
+The guide covers:
 
-- `npm run logs` will print the latest 50 log entries into your local terminal for quick and easy access, followed by a URL leading to the full gcloud console logs
+- **Event Configuration**: Define event types, interfaces, validation rules, and message composition
+- **Message Builders**: Use Discord and Telegram message builders with helper methods
+- **Deduplication**: Choose the right strategy to prevent duplicate notifications
+- **Testing**: Create fixtures, add test scripts, and verify your implementation locally and in production
 
-## Deploying from scratch
+The centralized event system makes adding new events straightforward—just update a few type definitions and configurations, and the event registry handles the rest automatically
 
-Check [DEPLOY_FROM_SCRATCH.md](./DEPLOY_FROM_SCRATCH.md)
+## Developing QuickNode Webhook Filter Functions
+
+QuickNode webhooks use [JavaScript filter functions](https://www.quicknode.com/docs/streams/filters?#example-filter-functions) that run on QuickNode's servers to determine which blockchain events should trigger notifications to our Cloud Function. These filters are base64-encoded and stored in [`infra/quicknode.tf`](./infra/quicknode.tf) under the `filter_function` properties.
+
+### Workflow
+
+1. [OPTIONAL] If you want to first double-check which code is actually deployed right now:
+   - Navigate to the [QuickNode Webhooks Dashboard](https://dashboard.quicknode.com/webhooks)
+   - Click the Webhook you're developing
+   - Copy the webhook ID from the URL into your clipboard
+   - Obtain the current filter function via:
+
+     ```bash
+     curl -X GET \
+        "https://api.quicknode.com/webhooks/rest/v1/webhooks/$webhook_id" \
+        -H "accept: application/json" \
+        -H "x-api-key: $quicknode_api_key" \
+        | jq -r .filter_function \
+        | base64 -d
+     ```
+
+2. **Open the filter function** in plain JavaScript at [`infra/quicknode-filter-functions/sorted-oracles.js`](./infra/quicknode-filter-functions/sorted-oracles.js)
+
+3. **Enable hot-reload** to automatically update the Terraform file:
+
+   ```sh
+   # Run the cmd for the webhook you're interested in
+   npm run dev:webhook:healthcheck
+   ```
+
+   This will watch for changes to `sorted-oracles.js` (which we're using as the healthcheck) and automatically:
+   - Base64 encode the updated function
+   - Update the `filter_function` field in the `quicknode_webhook_healthcheck` resource in `quicknode.tf`
+   - Create a timestamped backup of `quicknode.tf` before making changes
+
+4. **Make your changes** to `sorted-oracles.js` and save the file. The script will automatically update `quicknode.tf`.
+
+5. **Review the changes** with `git diff infra/quicknode.tf` to ensure the filter function was updated correctly.
+
+6. **Deploy to QuickNode**:
+
+   ```sh
+   cd infra
+   terraform plan   # Review changes
+   terraform apply  # Deploy
+   ```
+
+   **⚠️ Important:** QuickNode rejects updates to active webhooks. You must either:
+   - Pause the webhook first (set `status = "paused"` in the resource, run `terraform apply`, then update the filter function, then set `status = "active"` and `terraform apply` again)
+   - OR comment out the webhook resource, `terraform apply` to delete it, uncomment with your changes, and `terraform apply` to recreate it
+
+### Filter Function Structure
+
+The filter functions follow QuickNode's `evmAbiFilter` template:
+
+- They decode blockchain events using the contract ABI
+- They filter for specific event types and contract addresses
+- They can include custom filtering logic (e.g., filtering by specific token addresses)
+- They return matching events or `null` if no matches found
+
+See the [QuickNode Webhooks documentation](https://www.quicknode.com/docs/webhooks/getting-started) for more details on filter function syntax.
+
+## Deploying from Scratch
+
+Need to deploy the entire system to a new GCP project? See the complete guide in **[DEPLOY_FROM_SCRATCH.md](./DEPLOY_FROM_SCRATCH.md)**

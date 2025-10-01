@@ -15,21 +15,61 @@ resource "google_storage_bucket" "watchdog_notifications_function" {
   force_destroy = true
 }
 
+# Compute a hash of the source files to detect actual changes
+# This is more reliable than using the zip's SHA256 which includes metadata
+locals {
+  source_files = fileset("${path.module}/..", "src/**")
+  package_files = [
+    "${path.module}/../package.json",
+    "${path.module}/../package-lock.json"
+  ]
+  # Create a hash of all source files and package files
+  source_hash = md5(join("", [
+    for f in sort(concat(tolist(local.source_files), local.package_files)) :
+    fileexists("${path.module}/../${f}") ? filemd5("${path.module}/../${f}") : filemd5(f)
+  ]))
+}
+
 # Zip the Cloud Function source code
 data "archive_file" "function_source" {
   type        = "zip"
   source_dir  = "${path.module}/.."
   output_path = "${path.module}/../function-source.zip"
 
-  # Not sure if this is stricly necessary when defining a .gcloudignore file, but better safe than sorry
-  excludes = [".env", ".env.example", ".env.yaml", ".git", ".gitignore", ".trunk", ".vscode", "deploy-via-gcloud.sh", "test-deployed-function.sh", "README.md", "dist", "commitlint.config.mjs", "eslint.config.mjs", "infra", "node_modules"]
+  # Not sure if this is strictly necessary when defining a .gcloudignore file, but better safe than sorry
+  excludes = [
+    ".env",
+    ".env.example",
+    ".env.yaml",
+    ".git",
+    ".gitignore",
+    ".trunk",
+    ".vscode",
+    ".cursor",
+    ".github",
+    ".DS_Store",
+    ".project_vars_cache",
+    "bin",
+    "arch-diagram.png",
+    "DEPLOY_FROM_SCRATCH.md",
+    "README.md",
+    "dist",
+    "commitlint.config.mjs",
+    "eslint.config.mjs",
+    "infra",
+    "node_modules",
+    "function-source.zip",
+    ".terraform",
+    ".terraform.lock.hcl"
+  ]
 }
 
 
 # Upload the Cloud Function source code to the bucket
 resource "google_storage_bucket_object" "source_code" {
-  # The hashed filename is important for terraform to realize there's been a change. Otherwise `terraform apply` might not update the function although the source code has changed since last deploy.
-  name   = "function-source-${data.archive_file.function_source.output_sha256}.zip"
+  # Use our custom source hash instead of the archive's SHA256
+  # This ensures the function only redeploys when actual source files change
+  name   = "function-source-${local.source_hash}.zip"
   bucket = google_storage_bucket.watchdog_notifications_function.name
   source = data.archive_file.function_source.output_path
 }

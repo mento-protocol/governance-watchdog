@@ -17,6 +17,10 @@ runtimes:
     - python@3.10.8
 # This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
 lint:
+  ignore:
+    - linters: [gitleaks, checkov]
+      paths:
+        - src/events/fixtures
   disabled:
     - tfsec
     - trivy
@@ -55,4 +59,3 @@ actions:
 tools:
   disabled:
     - commitizen
-  enabled:

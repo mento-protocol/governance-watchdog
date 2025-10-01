@@ -3,33 +3,34 @@ import type {
   Request,
   Response,
 } from "@google-cloud/functions-framework";
-import assert from "assert/strict";
-import handleHealthCheckEvent from "./health-check";
-import parseRequestBody from "./parse-request-body";
-import handleProposalCanceledEvent from "./proposal-canceled";
-import handleProposalCreatedEvent from "./proposal-created";
-import handleProposalExecutedEvent from "./proposal-executed";
-import handleProposalQueuedEvent from "./proposal-queued";
-import handleTimelockChangeEvent from "./timelock-change";
-import { EventType } from "./types.js";
+import { processEvent } from "./events/process-event.js";
+import { initializeEventRegistry } from "./events/registry.js";
 import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
-import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
+import parseRequestBody from "./utils/parse-request-body.js";
+import {
+  hasAuthToken,
+  isFromQuicknode,
+} from "./utils/validate-request-origin.js";
+
+// Initialize event registry at global scope to leverage Cloud Functions instance reuse
+// This runs once per container instance (cold start), not on every invocation (warm start)
+initializeEventRegistry();
 
 export const governanceWatchdog: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
   const isProduction = process.env.NODE_ENV !== "development";
+
   try {
     /**
-     * We only want to accept requests in production that
+     * In production, we only want to accept requests that
      *  1) Come from Quicknode
-     *  2) or have an auth token (which we use for testing in production)
+     *  2) OR have an auth token (which we use for testing in production)
      */
     if (isProduction) {
       if (await isFromQuicknode(req)) {
-        if (process.env.DEBUG)
-          console.info("Received Quicknode Webhook:", req.body);
+        console.info("Received Quicknode Webhook:", req.body);
       } else if (await hasAuthToken(req)) {
         console.info("Received Call with auth token:", req.body);
       } else {
@@ -57,51 +58,16 @@ export const governanceWatchdog: HttpFunction = async (
     let eventsProcessed = 0;
     let eventsDeduplicated = 0;
 
-    for (const webhook of parseRequestBody(req.body)) {
+    for (const quicknodeEvent of parseRequestBody(req.body)) {
       // Skip duplicated events to prevent sending multiple notifications
-      if (isDuplicate(webhook)) {
+      if (isDuplicate(quicknodeEvent)) {
         eventsDeduplicated++;
         continue;
+      } else {
+        eventsProcessed++;
       }
 
-      eventsProcessed++;
-      switch (webhook.event.eventName) {
-        case EventType.ProposalCreated:
-          console.log("[DEBUG] ProposalCreated Event Request Body:", req.body);
-          await handleProposalCreatedEvent(webhook);
-          break;
-
-        case EventType.ProposalQueued:
-          console.log("[DEBUG] ProposalQueued Event Request Body:", req.body);
-          await handleProposalQueuedEvent(webhook);
-          break;
-
-        case EventType.ProposalExecuted:
-          console.log("[DEBUG] ProposalExecuted Event Request Body:", req.body);
-          await handleProposalExecutedEvent(webhook);
-          break;
-
-        case EventType.ProposalCanceled:
-          console.log("[DEBUG] ProposalCanceled Event Request Body:", req.body);
-          await handleProposalCanceledEvent(webhook);
-          break;
-
-        case EventType.TimelockChange:
-          console.log("[DEBUG] TimelockChange Event Request Body:", req.body);
-          await handleTimelockChangeEvent(webhook);
-          break;
-
-        // Acts a health check for the service, as it's a frequently emitted event
-        case EventType.MedianUpdated:
-          handleHealthCheckEvent(webhook);
-          break;
-
-        default:
-          assert(
-            false,
-            `Unknown event type from payload: ${JSON.stringify(req.body)}`,
-          );
-      }
+      await processEvent(quicknodeEvent);
     }
 
     if (eventsDeduplicated > 0) {

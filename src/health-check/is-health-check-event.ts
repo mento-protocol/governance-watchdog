@@ -1,21 +1,19 @@
-import type { DecodeEventLogReturnType } from "viem";
-import type SortedOraclesABI from "../abis/sorted-oracles.abi.js";
-import type { HealthCheckEvent } from "../types.js";
+import {
+  EventType,
+  type MedianUpdatedEvent,
+  type QuicknodeEvent,
+} from "../events/types.js";
 
 export default function isHealthCheckEvent(
-  event: DecodeEventLogReturnType<typeof SortedOraclesABI> | null | undefined,
-): event is HealthCheckEvent {
-  if (
-    event === null ||
-    event === undefined ||
-    typeof event !== "object" ||
-    !("args" in event)
-  ) {
-    return false;
-  }
+  event: unknown,
+): event is QuicknodeEvent & MedianUpdatedEvent {
   return (
-    event.eventName === "MedianUpdated" &&
-    "token" in event.args &&
-    "value" in event.args
+    event !== null &&
+    event !== undefined &&
+    typeof event === "object" &&
+    "name" in event &&
+    event.name === EventType.MedianUpdated &&
+    "token" in event &&
+    "value" in event
   );
 }

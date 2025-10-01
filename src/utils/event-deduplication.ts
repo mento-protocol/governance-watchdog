@@ -1,4 +1,5 @@
-import { EventType, QuicknodeWebhook } from "../types.js";
+import { eventRegistry } from "../events/registry.js";
+import { EventType, QuicknodeEvent } from "../events/types.js";
 
 type EventId = string;
 type Timestamp = number;
@@ -13,46 +14,53 @@ const DEDUPLICATION_WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_CACHE_SIZE = 100;
 
 /**
- * Generates a unique ID for an event based on its properties
+ * Extracts unique data from an event based on the configured deduplication strategy
  */
-function generateEventId(webhook: QuicknodeWebhook): EventId {
-  const { event, txHash, logIndex } = webhook;
+function extractUniqueData(
+  event: QuicknodeEvent,
+  strategy: "proposalId" | "rateFeedId" | "transactionHash" | "custom",
+): string {
+  switch (strategy) {
+    case "proposalId":
+      return "proposalId" in event ? event.proposalId.toString() : "";
 
-  // For different event types, extract the relevant identifying data
-  let uniqueData = "";
-
-  switch (event.eventName) {
-    // All proposal-related events have a proposalId
-    case EventType.ProposalCreated:
-    case EventType.ProposalQueued:
-    case EventType.ProposalExecuted:
-    case EventType.ProposalCanceled:
-      uniqueData =
-        "proposalId" in event.args ? event.args.proposalId.toString() : "";
-      break;
-
-    // TimelockChange event has an oldTimelock and a newTimelock
-    case EventType.TimelockChange:
-      if ("oldTimelock" in event.args && "newTimelock" in event.args) {
-        uniqueData = `${event.args.oldTimelock}-${event.args.newTimelock}`;
+    case "rateFeedId":
+      if ("token" in event && "value" in event) {
+        return `${event.token}-${event.value.toString()}`;
       }
-      break;
+      return "";
 
-    // Health check event has a token and a value
-    case EventType.MedianUpdated:
-      if ("token" in event.args && "value" in event.args) {
-        uniqueData = `${event.args.token}-${event.args.value.toString()}`;
-      }
-      break;
+    case "transactionHash":
+      return event.transactionHash;
 
-    // Use empty string for unknown event types
+    case "custom":
+      // For custom strategies, we fall back to a combination of available fields
+      // This can be extended in the future if specific custom logic is needed
+      console.warn(
+        `Custom deduplication strategy not yet implemented for ${event.name}`,
+      );
+      return "";
+
     default:
-      uniqueData = "";
+      return "";
+  }
+}
+
+/**
+ * Generates a unique ID for an event based on its configured deduplication strategy
+ */
+function generateEventId(event: QuicknodeEvent): EventId {
+  const config = eventRegistry.getConfig(event.name);
+
+  if (!config) {
+    console.warn(`No config found for event type: ${event.name}`);
+    // Fallback to basic deduplication using transaction data
+    return `${event.name}-${event.transactionHash}-${event.blockNumber}-${event.logIndex}`;
   }
 
-  return `${event.eventName}-${uniqueData}-${txHash}-${String(
-    webhook.blockNumber,
-  )}-${String(logIndex)}`;
+  const uniqueData = extractUniqueData(event, config.deduplicationStrategy);
+
+  return `${event.name}-${uniqueData}-${event.transactionHash}-${event.blockNumber}-${event.logIndex}`;
 }
 
 /**
@@ -72,29 +80,26 @@ function cleanupOldEntries(): void {
 
 /**
  * Checks if an event is a duplicate (meaning: the same EventID has been processed recently)
- * @param webhook The event to check
+ * @param event The event to check
  * @returns true if the event is a duplicate, false otherwise
  */
-export function isDuplicate(webhook: QuicknodeWebhook): boolean {
-  const eventId = generateEventId(webhook);
+export function isDuplicate(event: QuicknodeEvent): boolean {
+  const eventId = generateEventId(event);
   const now = Date.now();
 
   if (process.env.DEBUG) {
     console.log(
-      `[DEDUP] Checking event: ${webhook.event.eventName} (logIndex: ${String(
-        webhook.logIndex,
-      )}, txHash: ${webhook.txHash})`,
+      `[DEDUP] Checking event: ${event.name} (logIndex: ${event.logIndex}, txHash: ${event.transactionHash})`,
     );
 
     if (
-      webhook.event.eventName === EventType.MedianUpdated &&
-      "token" in webhook.event.args &&
-      "value" in webhook.event.args
+      event.name === EventType.MedianUpdated &&
+      "token" in event &&
+      "value" in event
     ) {
       console.log(
-        `[DEDUP] MedianUpdated details - token: ${
-          webhook.event.args.token
-        }, value: ${String(webhook.event.args.value)}`,
+        `[DEDUP] MedianUpdated details - token: ${event.token},
+         value: ${String(event.value)}`,
       );
     }
     console.log(`[DEDUP] Generated eventId: ${eventId}`);
