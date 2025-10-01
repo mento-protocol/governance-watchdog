@@ -1,5 +1,5 @@
 import assert from "assert";
-import { QuicknodeEvent } from "../types";
+import { QuicknodeEvent } from "../events/types.js";
 import isHealthCheckEvent from "./is-health-check-event";
 
 // CELO/cUSD rate feed address - only log health checks for this feed

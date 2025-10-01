@@ -1,5 +1,5 @@
 import { encodeAbiParameters, keccak256, parseAbiParameters } from "viem";
-import { ProposalCreatedEvent } from "../types";
+import { ProposalCreatedEvent } from "../types.js";
 
 /**
  * Given a ProposalCreatedEvent, calculate the corresponding timelock operation ID.

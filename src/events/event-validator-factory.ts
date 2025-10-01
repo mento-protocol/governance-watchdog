@@ -1,32 +1,36 @@
-import { EventType, QuicknodeEvent } from "../types.js";
+import { QuicknodeEvent } from "./types.js";
+
+export interface EventValidatorConfig {
+  requiredFields: string[];
+  additionalValidation?: (event: Record<string, unknown>) => boolean;
+}
 
 /**
  * Creates a generic event validator for common patterns
+ * Note: Event type validation happens at the routing level, not here
  */
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function createEventValidator<T extends QuicknodeEvent>(
-  eventType: EventType,
-  requiredFields: string[],
-  additionalValidation?: (event: Record<string, unknown>) => boolean,
+  config: EventValidatorConfig,
 ) {
   return function validateEvent(event: unknown): event is T {
     // Basic type checks
-    if (!isObject(event) || !("name" in event)) {
+    if (!isObject(event)) {
       return false;
     }
 
-    // Basic validation: event type and required fields
-    const basicValidation =
-      event.name === eventType &&
-      requiredFields.every((field) => field in event);
+    // Validate required fields exist
+    const basicValidation = config.requiredFields.every(
+      (field) => field in event,
+    );
 
     // If no additional validation provided, return basic validation
-    if (!additionalValidation) {
+    if (!config.additionalValidation) {
       return basicValidation;
     }
 
     // Return basic validation AND additional validation
-    return basicValidation && additionalValidation(event);
+    return basicValidation && config.additionalValidation(event);
   };
 }
 

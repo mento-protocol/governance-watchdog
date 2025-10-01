@@ -1,4 +1,4 @@
-import { QuicknodePayload } from "../types";
+import { QuicknodePayload } from "../events/types.js";
 
 /**
  * Check if the payload is a valid QuickNode payload

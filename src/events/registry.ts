@@ -1,8 +1,12 @@
-import { EventType, QuicknodeEvent } from "../types.js";
+import handleHealthCheck from "../health-check/index.js";
+import { EVENT_CONFIGS } from "./configs.js";
+import { createEventHandler } from "./event-handler-factory.js";
 import {
   EventHandlerFunction,
   EventRegistryEntry,
+  EventType,
   ExtendedEventHandlerConfig,
+  QuicknodeEvent,
 } from "./types.js";
 
 /**
@@ -20,12 +24,12 @@ class EventRegistry {
     handler: EventHandlerFunction,
   ): void {
     const entry: EventRegistryEntry = {
-      eventType: config.eventType as EventType,
+      eventType: config.eventType,
       handler,
       config: config as unknown as ExtendedEventHandlerConfig<QuicknodeEvent>,
     };
 
-    this.handlers.set(config.eventType as EventType, entry);
+    this.handlers.set(config.eventType, entry);
   }
 
   /**
@@ -77,3 +81,27 @@ class EventRegistry {
 
 // Global registry instance
 export const eventRegistry = new EventRegistry();
+
+/**
+ * Auto-register all events from the centralized event configurations
+ * This automatically loops through EVENT_CONFIGS, so new events are registered
+ * simply by adding them to configs.ts
+ */
+export function initializeEventRegistry(): void {
+  // Auto-register all events from EVENT_CONFIGS
+  Object.values(EVENT_CONFIGS).forEach((config) => {
+    // Type assertion needed because Object.values() creates a union type
+    // At runtime, each config is correctly typed for its specific event
+    eventRegistry.register(
+      config as ExtendedEventHandlerConfig<QuicknodeEvent>,
+      createEventHandler(config as ExtendedEventHandlerConfig<QuicknodeEvent>),
+    );
+  });
+
+  // Register special handlers (i.e. the health check does not emit notifications and has some custom logic)
+  eventRegistry.registerSpecial("healthCheck", handleHealthCheck);
+
+  console.log(
+    `Event registry initialized with ${String(eventRegistry.getRegisteredEventTypes().length)} event types`,
+  );
+}

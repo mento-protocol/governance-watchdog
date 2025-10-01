@@ -1,4 +1,5 @@
-import { EventType, QuicknodeEvent } from "../types.js";
+import { eventRegistry } from "../events/registry.js";
+import { EventType, QuicknodeEvent } from "../events/types.js";
 
 type EventId = string;
 type Timestamp = number;
@@ -13,32 +14,51 @@ const DEDUPLICATION_WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_CACHE_SIZE = 100;
 
 /**
- * Generates a unique ID for an event based on its properties
+ * Extracts unique data from an event based on the configured deduplication strategy
+ */
+function extractUniqueData(
+  event: QuicknodeEvent,
+  strategy: "proposalId" | "rateFeedId" | "transactionHash" | "custom",
+): string {
+  switch (strategy) {
+    case "proposalId":
+      return "proposalId" in event ? event.proposalId.toString() : "";
+
+    case "rateFeedId":
+      if ("token" in event && "value" in event) {
+        return `${event.token}-${event.value.toString()}`;
+      }
+      return "";
+
+    case "transactionHash":
+      return event.transactionHash;
+
+    case "custom":
+      // For custom strategies, we fall back to a combination of available fields
+      // This can be extended in the future if specific custom logic is needed
+      console.warn(
+        `Custom deduplication strategy not yet implemented for ${event.name}`,
+      );
+      return "";
+
+    default:
+      return "";
+  }
+}
+
+/**
+ * Generates a unique ID for an event based on its configured deduplication strategy
  */
 function generateEventId(event: QuicknodeEvent): EventId {
-  // For different event types, extract the relevant identifying data
-  let uniqueData = "";
+  const config = eventRegistry.getConfig(event.name);
 
-  switch (event.name) {
-    // All proposal-related events have a proposalId
-    case EventType.ProposalCreated:
-    case EventType.ProposalQueued:
-    case EventType.ProposalExecuted:
-    case EventType.ProposalCanceled:
-      uniqueData = "proposalId" in event ? event.proposalId.toString() : "";
-      break;
-
-    // Health check event has a token and a value
-    case EventType.MedianUpdated:
-      if ("token" in event && "value" in event) {
-        uniqueData = `${event.token}-${event.value.toString()}`;
-      }
-      break;
-
-    // Use empty string for unknown event types
-    default:
-      uniqueData = "";
+  if (!config) {
+    console.warn(`No config found for event type: ${event.name}`);
+    // Fallback to basic deduplication using transaction data
+    return `${event.name}-${event.transactionHash}-${event.blockNumber}-${event.logIndex}`;
   }
+
+  const uniqueData = extractUniqueData(event, config.deduplicationStrategy);
 
   return `${event.name}-${uniqueData}-${event.transactionHash}-${event.blockNumber}-${event.logIndex}`;
 }

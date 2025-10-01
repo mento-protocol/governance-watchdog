@@ -3,29 +3,24 @@ import type {
   Request,
   Response,
 } from "@google-cloud/functions-framework";
-import { initializeEventRegistry } from "./event-registry/initialize-event-registry.js";
-import { processEvent } from "./event-registry/process-event.js";
-import parseRequestBody from "./parse-request-body";
-import { EventType } from "./types.js";
+import { processEvent } from "./events/process-event.js";
+import { initializeEventRegistry } from "./events/registry.js";
 import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
-import { hasAuthToken, isFromQuicknode } from "./utils/validate-request-origin";
+import parseRequestBody from "./utils/parse-request-body.js";
+import {
+  hasAuthToken,
+  isFromQuicknode,
+} from "./utils/validate-request-origin.js";
 
-// Global type declaration for registry initialization flag
-declare global {
-  var eventRegistryInitialized: boolean | undefined;
-}
+// Initialize event registry at global scope to leverage Cloud Functions instance reuse
+// This runs once per container instance (cold start), not on every invocation (warm start)
+initializeEventRegistry();
 
 export const governanceWatchdog: HttpFunction = async (
   req: Request,
   res: Response,
 ) => {
   const isProduction = process.env.NODE_ENV !== "development";
-
-  // Initialize event registry on first run
-  if (!globalThis.eventRegistryInitialized) {
-    await initializeEventRegistry();
-    globalThis.eventRegistryInitialized = true;
-  }
 
   try {
     /**
@@ -35,8 +30,7 @@ export const governanceWatchdog: HttpFunction = async (
      */
     if (isProduction) {
       if (await isFromQuicknode(req)) {
-        if (process.env.DEBUG)
-          console.info("Received Quicknode Webhook:", req.body);
+        console.info("Received Quicknode Webhook:", req.body);
       } else if (await hasAuthToken(req)) {
         console.info("Received Call with auth token:", req.body);
       } else {
@@ -69,19 +63,10 @@ export const governanceWatchdog: HttpFunction = async (
       if (isDuplicate(quicknodeEvent)) {
         eventsDeduplicated++;
         continue;
+      } else {
+        eventsProcessed++;
       }
 
-      eventsProcessed++;
-
-      // Log debug info for known event types
-      if (quicknodeEvent.name !== EventType.MedianUpdated) {
-        console.log(
-          `[DEBUG] ${quicknodeEvent.name} Event Request Body:`,
-          req.body,
-        );
-      }
-
-      // Process event using registry
       await processEvent(quicknodeEvent);
     }
 

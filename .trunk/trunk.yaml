@@ -20,7 +20,7 @@ lint:
   ignore:
     - linters: [gitleaks, checkov]
       paths:
-        - src/**/fixture.json
+        - src/events/fixtures
   disabled:
     - tfsec
     - trivy
@@ -59,4 +59,3 @@ actions:
 tools:
   disabled:
     - commitizen
-  enabled:

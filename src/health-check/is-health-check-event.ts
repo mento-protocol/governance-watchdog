@@ -2,7 +2,7 @@ import {
   EventType,
   type MedianUpdatedEvent,
   type QuicknodeEvent,
-} from "../types.js";
+} from "../events/types.js";
 
 export default function isHealthCheckEvent(
   event: unknown,

@@ -3,20 +3,6 @@ import crypto from "crypto";
 import config from "../config";
 import getSecret from "./get-secret";
 
-/**
- * Helper to convert hex string to Uint8Array.
- * We use this instead of Buffer to avoid type mismatches in newer @types/node versions,
- * which introduce stricter ArrayBufferLike checks that Buffer doesn't fully satisfy
- * (due to SharedArrayBuffer compatibility issues).
- */
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
-  }
-  return bytes;
-}
-
 export async function isFromQuicknode(req: Request): Promise<boolean> {
   const quicknodeSecurityToken = await getSecret(
     config.QUICKNODE_SECURITY_TOKEN_SECRET_ID,
@@ -96,4 +82,18 @@ function verifySignature(
     hexToBytes(computedSignature),
     hexToBytes(givenSignature),
   );
+}
+
+/**
+ * Helper to convert hex string to Uint8Array.
+ * We use this instead of Buffer to avoid type mismatches in newer @types/node versions,
+ * which introduce stricter ArrayBufferLike checks that Buffer doesn't fully satisfy
+ * (due to SharedArrayBuffer compatibility issues).
+ */
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
 }

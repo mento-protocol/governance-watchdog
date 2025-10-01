@@ -10,6 +10,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 - [Running and testing the Cloud Function locally](#running-and-testing-the-cloud-function-locally)
 - [Testing the Deployed Cloud Function](#testing-the-deployed-cloud-function)
 - [Updating the Cloud Function](#updating-the-cloud-function)
+- [Adding New Events](#adding-new-events)
 - [Developing QuickNode Webhook Filter Functions](#developing-quicknode-webhook-filter-functions)
   - [Workflow](#workflow)
   - [Filter Function Structure](#filter-function-structure)
@@ -149,7 +150,7 @@ A system that monitors Mento Governance events on-chain and sends notifications 
 
 ## Testing the Deployed Cloud Function
 
-You can test the deployed cloud function manually by using the `src/<event-type>/fixture.json` which contains a similar payload to what a Quicknode Webhook would send to the cloud function:
+You can test the deployed cloud function manually by using the `src/events/fixtures/<event-type>.fixture.json` which contains a similar payload to what a Quicknode Webhook would send to the cloud function:
 
 ```sh
 npm run test:prod:<EventName> # i.e. npm run test:prod:ProposalCreated
@@ -182,6 +183,19 @@ You have two options, using `terraform` or the `gcloud` cli. Both are perfectly 
      - Will lead to slightly inconsistent terraform state (because terraform is tracking the function source code and its version)
      - Different commands to remember when updating infra components vs cloud function source code
      - Will only work for updating a pre-existing cloud function's code, will fail for a first-time deploy
+
+## Adding New Events
+
+Want to add support for new blockchain events? See the detailed guide in **[ADDING_EVENTS.md](./ADDING_EVENTS.md)**.
+
+The guide covers:
+
+- **Event Configuration**: Define event types, interfaces, validation rules, and message composition
+- **Message Builders**: Use Discord and Telegram message builders with helper methods
+- **Deduplication**: Choose the right strategy to prevent duplicate notifications
+- **Testing**: Create fixtures, add test scripts, and verify your implementation locally and in production
+
+The centralized event system makes adding new events straightforward—just update a few type definitions and configurations, and the event registry handles the rest automatically
 
 ## Developing QuickNode Webhook Filter Functions
 
@@ -245,6 +259,6 @@ The filter functions follow QuickNode's `evmAbiFilter` template:
 
 See the [QuickNode Webhooks documentation](https://www.quicknode.com/docs/webhooks/getting-started) for more details on filter function syntax.
 
-## Deploying from scratch
+## Deploying from Scratch
 
-Check [DEPLOY_FROM_SCRATCH.md](./DEPLOY_FROM_SCRATCH.md)
+Need to deploy the entire system to a new GCP project? See the complete guide in **[DEPLOY_FROM_SCRATCH.md](./DEPLOY_FROM_SCRATCH.md)**

@@ -1,5 +1,5 @@
-import { eventRegistry } from ".";
-import { EventType, QuicknodeEvent } from "../types";
+import { eventRegistry } from "./registry";
+import { EventType, QuicknodeEvent } from "./types.js";
 
 /**
  * Process an event using the registry
