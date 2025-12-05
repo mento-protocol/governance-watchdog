@@ -26,7 +26,7 @@ export function createEventHandler<T extends QuicknodeEvent>(
     // Helper to safely stringify events that may contain bigints
     const safeStringify = (obj: unknown): string => {
       try {
-        return JSON.stringify(obj, (_, value) =>
+        return JSON.stringify(obj, (_, value: unknown): unknown =>
           typeof value === "bigint" ? value.toString() : value,
         );
       } catch {

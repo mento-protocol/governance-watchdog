@@ -17,6 +17,7 @@
     "generate:env": "terraform -chdir=infra apply -target=local_file.env_file",
     "logs": "./bin/get-logs.sh",
     "logs:watch": "./bin/watch-logs.sh",
+    "reprocess:event": "tsx bin/reprocess-event.ts",
     "prestart": "npm run build",
     "start": "NODE_ENV=development functions-framework --target=governanceWatchdog",
     "test": "npm run test:local:ProposalCreated && npm run test:local:ProposalQueued && npm run test:local:ProposalExecuted && npm run test:local:ProposalCanceled && npm run test:local:healthcheck",
@@ -43,10 +44,12 @@
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@types/eslint": "^9.6.1",
+    "@types/node": "^22.10.5",
     "eslint": "^9.22.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1"
   }
