@@ -6,7 +6,7 @@
   "author": "Mento Labs <eng@mentolabs.xyz>",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rimraf dist && tsc",
+    "build": "rimraf dist && tsc --project tsconfig.build.json",
     "cache:clear": "./bin/get-project-vars.sh --invalidate-cache",
     "deploy": "terraform -chdir=infra apply",
     "deploy:function": "./bin/deploy-via-gcloud.sh",
