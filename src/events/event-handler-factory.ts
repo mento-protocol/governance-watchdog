@@ -23,9 +23,20 @@ export function createEventHandler<T extends QuicknodeEvent>(
   config: EventHandlerConfig<T>,
 ) {
   return async function handleEvent(event: QuicknodeEvent): Promise<void> {
+    // Helper to safely stringify events that may contain bigints
+    const safeStringify = (obj: unknown): string => {
+      try {
+        return JSON.stringify(obj, (_, value: unknown): unknown =>
+          typeof value === "bigint" ? value.toString() : value,
+        );
+      } catch {
+        return String(obj);
+      }
+    };
+
     assert(
       config.validateEvent(event),
-      `Expected ${config.eventType} event but was ${JSON.stringify(event)}`,
+      `Expected ${config.eventType} event but was ${safeStringify(event)}`,
     );
 
     console.info(`${config.eventType} event found at block`, event.blockNumber);
