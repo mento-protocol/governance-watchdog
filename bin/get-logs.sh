@@ -62,7 +62,7 @@ end'
 	echo "${request_logs}" | jq -r '.[] |
 "[POST] \u001b[33m\(.timestamp as $ts | $ts | split("T")[0] + " " + ($ts | split("T")[1] | split(".")[0]))\u001b[0m: \(.httpRequest.requestMethod)\(.httpRequest.status)\(.httpRequest.requestSize // 0 | tonumber | . / 1024 | round)B \(.httpRequest.latency // "0s" | rtrimstr("s") | tonumber * 1000 | round)ms \(.httpRequest.userAgent // "unknown")"'
 
-	logs_url="https://console.cloud.google.com/run/detail/${region}/${function_name}/logs?project=${project_id}"
+	logs_url="https://console.cloud.google.com/run/detail/${region}/${function_name}/observability/logs?project=${project_id}"
 	printf '\n\033[1m%s\033[0m\n' "${logs_url}"
 }
 
