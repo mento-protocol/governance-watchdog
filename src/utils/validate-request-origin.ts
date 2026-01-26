@@ -16,8 +16,16 @@ export async function isFromQuicknode(req: Request): Promise<boolean> {
     return false;
   }
   try {
-    const payloadString =
-      typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+    // Use rawBody for signature verification - this is the original request body
+    // before any parsing. Re-serializing req.body with JSON.stringify() can produce
+    // different output than what was sent, causing signature verification to fail.
+    if (!req.rawBody) {
+      console.error(
+        "❌ Quicknode Validation: req.rawBody is not available. Cannot verify signature.",
+      );
+      return false;
+    }
+    const payloadString = req.rawBody.toString();
     const isValid = verifySignature(
       quicknodeSecurityToken,
       payloadString,
@@ -32,7 +40,7 @@ export async function isFromQuicknode(req: Request): Promise<boolean> {
       }
       return true;
     } else {
-      console.log("\n❌ Quicknode signature verification failed");
+      console.error("\n❌ Quicknode signature verification failed");
       return false;
     }
   } catch (error) {
