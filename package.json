@@ -33,6 +33,9 @@
     "test:prod:healthcheck": "./bin/test-deployed-function.sh healthcheck",
     "todo": "git ls-files -c --exclude-standard | grep -v \"package.json\" | xargs grep -n -i --color \"TODO:\\|FIXME:\""
   },
+  "overrides": {
+    "undici": "^6.23.0"
+  },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.6",
     "@google-cloud/resource-manager": "^5.3.1",
