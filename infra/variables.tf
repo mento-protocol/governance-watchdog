@@ -118,6 +118,19 @@ variable "victorops_webhook_url" {
   sensitive = true
 }
 
+# Slack notification channel ID for error alerts.
+# This is the ID of the notification channel created via OAuth in GCP Console.
+# To find this ID:
+# 1. Go to GCP Console → Monitoring → Alerting → Edit Notification Channels
+# 2. Click on the Slack channel and copy the ID from the URL or run:
+#    gcloud beta monitoring channels list --format='table(name,displayName,type)'
+# Note: Leave empty for initial deployment; the channel can only be created after the GCP project exists.
+variable "slack_notification_channel_id" {
+  type        = string
+  description = "The notification channel ID for Slack (e.g., '7755148860700532944')"
+  default     = ""
+}
+
 # Used to impersonate our Terraform service account in the Google provider
 variable "terraform_service_account" {
   type        = string

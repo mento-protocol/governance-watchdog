@@ -127,6 +127,16 @@ A system that monitors Mento Governance events on-chain and sends notifications 
    # Required to send on-call alerts to VictorOps
    # Get it from [our VictorOps](https://portal.victorops.com/dash/mento-labs-gmbh#/advanced/stackdriver) and clicking `Integrations` > `Stackdriver` and copying the URL. The routing key can be founder under the [`Settings`](https://portal.victorops.com/dash/mento-labs-gmbh#/routekeys) tab
    victorops_webhook_url   = "<victorops-webhook-url>/<victorops-routing-key>"
+
+   # Slack notification channel ID for error alerts
+   # This channel is created via OAuth in GCP Console (not managed by Terraform)
+   # To find the ID:
+   #   `gcloud beta monitoring channels list --project=governance-watchdog-b2a6 --format='table(name,displayName,type)'`
+   # Or via UI:
+   #   1. Go to https://console.cloud.google.com/monitoring/alerting/notifications?project=governance-watchdog-b2a6
+   #   2. Find your Slack channel under "Slack" and click it
+   #   3. The channel ID is in the URL: .../notificationChannels/<THIS_IS_THE_ID>
+   slack_notification_channel_id = "<slack-channel-id>"
    ```
 
 1. Auto-generate a local `.env` file by running `npm run generate:env` — we'll need this to run the cloud function locally

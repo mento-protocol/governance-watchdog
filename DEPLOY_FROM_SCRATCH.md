@@ -151,6 +151,29 @@ If for whatever reason service account impersonation doesn't work, you'll need a
    npm run cache:clear
    ```
 
+1. Set up a Slack notification channel for error alerts
+
+   **Note:** This step must be done AFTER the initial `terraform apply` because the GCP project needs to exist first.
+
+   The Slack notification channel requires OAuth and must be created manually in the GCP Console:
+   - Get your project ID: `cd infra && terraform output project_id`
+   - Go to GCP Console → Monitoring → Alerting → [Edit Notification Channels](https://console.cloud.google.com/monitoring/alerting/notifications) (make sure you're in the correct project!)
+   - Scroll to **Slack** and click **Add New**
+   - Click **Authorize Slack** and complete the OAuth flow with your Slack workspace
+   - Select the channel you want error alerts to go to (e.g., `#gcp-alerts`)
+   - Give it a display name like "GCP Alerts"
+   - After creating, find the channel ID:
+     - Click on the newly created Slack channel in the list
+     - The channel ID is in the URL: `.../notificationChannels/<THIS_IS_THE_ID>`
+     - Or via CLI: `gcloud beta monitoring channels list --project=<YOUR_PROJECT_ID> --format='table(name,displayName,type)'`
+   - Add the channel ID to your `terraform.tfvars`:
+
+     ```hcl
+     slack_notification_channel_id = "<channel-id>"
+     ```
+
+   - Run `terraform apply` again to create the error alerting policy
+
 1. Check that everything worked as expected
 
    ```sh
