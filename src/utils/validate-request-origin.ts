@@ -12,7 +12,7 @@ export async function isFromQuicknode(req: Request): Promise<boolean> {
   const givenSignature = req.headers["x-qn-signature"] as string;
 
   if (!nonce || !timestamp || !givenSignature) {
-    console.error("Quicknode Validation: Missing required quicknode headers");
+    console.error("QuickNode Validation: Missing required QuickNode headers");
     return false;
   }
   try {
@@ -21,7 +21,7 @@ export async function isFromQuicknode(req: Request): Promise<boolean> {
     // different output than what was sent, causing signature verification to fail.
     if (!req.rawBody) {
       console.error(
-        "❌ Quicknode Validation: req.rawBody is not available. Cannot verify signature.",
+        "❌ QuickNode Validation: req.rawBody is not available. Cannot verify signature.",
       );
       return false;
     }
@@ -40,11 +40,11 @@ export async function isFromQuicknode(req: Request): Promise<boolean> {
       }
       return true;
     } else {
-      console.error("\n❌ Quicknode signature verification failed");
+      console.error("\n❌ QuickNode signature verification failed");
       return false;
     }
   } catch (error) {
-    console.error("\n❌ Error processing quicknode webhook:", error);
+    console.error("\n❌ Error processing QuickNode webhook:", error);
     return false;
   }
 }
