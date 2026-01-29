@@ -1,8 +1,9 @@
 module "governance_watchdog" {
   activate_apis = [
-    "cloudfunctions.googleapis.com",
     "cloudbuild.googleapis.com",
+    "cloudfunctions.googleapis.com",
     "cloudresourcemanager.googleapis.com",
+    "cloudscheduler.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
     "run.googleapis.com",

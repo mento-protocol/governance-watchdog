@@ -143,3 +143,96 @@ resource "google_monitoring_alert_policy" "error_logs_policy" {
     auto_close = "86400s" # Auto-close after 24 hours if no new errors
   }
 }
+
+# =============================================================================
+# QuickNode Webhook Health Alerting (Slack)
+# =============================================================================
+# Alerts when QuickNode signature verification fails repeatedly, which is an
+# early warning that a webhook may get terminated by QuickNode.
+
+# Creates a metric that counts signature verification failures.
+resource "google_logging_metric" "signature_failure_metric" {
+  project     = module.governance_watchdog.project_id
+  name        = "quicknode_signature_failures"
+  description = "Number of QuickNode signature verification failures"
+  filter      = <<EOF
+    resource.type="cloud_run_revision"
+    resource.labels.service_name="${google_cloudfunctions2_function.watchdog_notifications.name}"
+    textPayload:"QuickNode signature verification failed"
+  EOF
+}
+
+# Creates an alert policy that triggers when signature failures occur.
+# This is an early warning that a QuickNode webhook may be misconfigured
+# and could be terminated if the failures continue.
+# This resource is only created if a Slack notification channel ID is provided.
+resource "google_monitoring_alert_policy" "signature_failure_policy" {
+  count = var.slack_notification_channel_id != "" ? 1 : 0
+
+  project      = module.governance_watchdog.project_id
+  display_name = "quicknode-signature-failures"
+  combiner     = "OR"
+  enabled      = true
+
+  documentation {
+    content   = <<-EOT
+      ## QuickNode Signature Verification Failures Detected
+
+      QuickNode webhook requests have failed signature verification.
+      This can mean the security token configured in QuickNode doesn't
+      match what's stored in GCP Secret Manager. Or the cloud function code
+      processing this webhook is not working correctly.
+
+      **If not fixed, QuickNode will likely TERMINATE the webhook after repeated failures**
+
+      ### To Fix:
+      1. Go to [QuickNode Dashboard](https://dashboard.quicknode.com/webhooks)
+      2. Check the security token for the failing webhook
+      3. Ensure it matches the value in GCP Secret Manager:
+         ```
+         gcloud secrets versions access latest --secret="quicknode_security_token" --project="${module.governance_watchdog.project_id}"
+         ```
+      4. Update the webhook in QuickNode with the correct token
+      5. If the token is correct, check the logs for the cloud function to see if there are any errors processing the webhook.
+
+      ### To Check Logs:
+      ```
+      gcloud logging read 'textPayload:"signature verification failed" AND resource.labels.service_name="${google_cloudfunctions2_function.watchdog_notifications.name}"' --limit=20 --format='table(timestamp,textPayload)'
+      ```
+    EOT
+    mime_type = "text/markdown"
+  }
+
+  conditions {
+    display_name = "Signature verification failures detected"
+
+    condition_threshold {
+      filter = <<EOF
+        resource.type = "cloud_run_revision" AND
+        metric.type   = "logging.googleapis.com/user/${google_logging_metric.signature_failure_metric.name}"
+      EOF
+
+      duration        = "0s" # Alert immediately
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+
+      aggregations {
+        alignment_period     = "300s" # Check every 5 minutes
+        per_series_aligner   = "ALIGN_SUM"
+        cross_series_reducer = "REDUCE_SUM"
+      }
+
+      trigger {
+        count = 1
+      }
+    }
+  }
+
+  # References Slack channel created via OAuth in GCP Console (not managed by Terraform)
+  notification_channels = ["projects/${module.governance_watchdog.project_id}/notificationChannels/${var.slack_notification_channel_id}"]
+  severity              = "WARNING"
+
+  alert_strategy {
+    auto_close = "3600s" # Auto-close after 1 hour if no new failures
+  }
+}

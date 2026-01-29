@@ -77,3 +77,19 @@ resource "google_secret_manager_secret_version" "quicknode_security_token" {
   secret      = google_secret_manager_secret.quicknode_security_token.id
   secret_data = var.quicknode_security_token
 }
+
+# Creates a new secret for the QuickNode API key which is used to query the QuickNode REST API
+# for webhook health status monitoring.
+resource "google_secret_manager_secret" "quicknode_api_key" {
+  project   = module.governance_watchdog.project_id
+  secret_id = "quicknode-api-key"
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "quicknode_api_key" {
+  secret      = google_secret_manager_secret.quicknode_api_key.id
+  secret_data = var.quicknode_api_key
+}
