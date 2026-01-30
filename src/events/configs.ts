@@ -95,10 +95,23 @@ export const EVENT_CONFIGS = {
     getTelegramMessage: (event: QuicknodeEvent & ProposalCreatedEvent) => {
       const timelockId = getProposalTimelockId(event);
 
+      // Safely parse the description to extract title
+      let proposalTitle = "Untitled Proposal";
+      if (event.description) {
+        try {
+          const parsed = JSON.parse(event.description) as { title?: string };
+          if (typeof parsed.title === "string") {
+            proposalTitle = parsed.title;
+          }
+        } catch {
+          // Keep default title if parsing fails
+        }
+      }
+
       return new TelegramMessageBuilder(
         `Please review the proposal and check if anything looks off.`,
       )
-        .addTitle("Proposal Created")
+        .addTitle(proposalTitle)
         .addProposalLink(event.proposalId)
         .addTransactionLink(event.transactionHash, "Proposal")
         .addProposerLink(event.proposer)
