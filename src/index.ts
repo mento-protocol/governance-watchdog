@@ -53,6 +53,8 @@ const handleQuicknodeHealthCheck = async (
   _req: Request,
   res: Response,
 ): Promise<void> => {
+  const requestStartTime = Date.now();
+
   try {
     const result = await checkWebhookStatus();
 
@@ -74,8 +76,10 @@ const handleQuicknodeHealthCheck = async (
         .send(`Unhealthy webhooks: ${result.unhealthyWebhooks.join(", ")}`);
     }
   } catch (error) {
+    const requestDuration = Date.now() - requestStartTime;
+    // Include timing in error log to help diagnose timeouts
     console.error(
-      "[QuickNodeHealth] ❌ Failed to check webhook status:",
+      `[QuickNodeHealth] ❌ Failed to check webhook status after ${String(requestDuration)}ms:`,
       error,
     );
     res.status(500).send("Failed to check QuickNode webhook status");
