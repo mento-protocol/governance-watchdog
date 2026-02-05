@@ -22,13 +22,13 @@ resource "google_cloud_run_v2_service_iam_member" "scheduler_invoker" {
   member   = "serviceAccount:${google_service_account.scheduler_invoker.email}"
 }
 
-# Cloud Scheduler job that checks QuickNode webhook health every 15 minutes
+# Cloud Scheduler job that checks QuickNode webhook health every hour
 resource "google_cloud_scheduler_job" "quicknode_health_check" {
   project     = module.governance_watchdog.project_id
   region      = var.region
   name        = "quicknode-webhook-health-check"
-  description = "Checks QuickNode webhook status every 15 minutes and alerts if any webhook is not active"
-  schedule    = "*/15 * * * *" # Every 15 minutes
+  description = "Checks QuickNode webhook status every hour and alerts if any webhook is not active"
+  schedule    = "0 * * * *" # Every hour at minute 0
   time_zone   = "UTC"
 
   # Note: If the health check fails, retries may generate multiple error logs which could
