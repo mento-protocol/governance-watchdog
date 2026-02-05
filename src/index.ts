@@ -5,6 +5,7 @@ import type {
 } from "@google-cloud/functions-framework";
 import { processEvent } from "./events/process-event.js";
 import { initializeEventRegistry } from "./events/registry.js";
+import { EventType } from "./events/types.js";
 import { checkWebhookStatus } from "./quicknode-health/index.js";
 import { getCacheSize, isDuplicate } from "./utils/event-deduplication.js";
 import parseRequestBody from "./utils/parse-request-body.js";
@@ -12,6 +13,33 @@ import {
   hasAuthToken,
   isFromQuicknode,
 } from "./utils/validate-request-origin.js";
+
+/**
+ * Check if the webhook body contains only health check events (MedianUpdated).
+ * Used to avoid verbose logging for routine health check pings.
+ */
+const isHealthCheckWebhook = (body: unknown): boolean => {
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("result" in body) ||
+    !Array.isArray((body as { result: unknown }).result)
+  ) {
+    return false;
+  }
+
+  const result = (body as { result: unknown[] }).result;
+  return (
+    result.length > 0 &&
+    result.every(
+      (event) =>
+        event &&
+        typeof event === "object" &&
+        "name" in event &&
+        event.name === EventType.MedianUpdated,
+    )
+  );
+};
 
 // Initialize event registry at global scope to leverage Cloud Functions instance reuse
 // This runs once per container instance (cold start), not on every invocation (warm start)
@@ -25,7 +53,7 @@ const handleQuicknodeHealthCheck = async (
   _req: Request,
   res: Response,
 ): Promise<void> => {
-  console.info("[QuickNodeHealth] Starting webhook health check");
+  const requestStartTime = Date.now();
 
   try {
     const result = await checkWebhookStatus();
@@ -48,8 +76,10 @@ const handleQuicknodeHealthCheck = async (
         .send(`Unhealthy webhooks: ${result.unhealthyWebhooks.join(", ")}`);
     }
   } catch (error) {
+    const requestDuration = Date.now() - requestStartTime;
+    // Include timing in error log to help diagnose timeouts
     console.error(
-      "[QuickNodeHealth] ❌ Failed to check webhook status:",
+      `[QuickNodeHealth] ❌ Failed to check webhook status after ${String(requestDuration)}ms:`,
       error,
     );
     res.status(500).send("Failed to check QuickNode webhook status");
@@ -71,8 +101,13 @@ const handleQuicknodeWebhook = async (
    *  2) OR have an auth token (which we use for testing in production)
    */
   if (isProduction) {
+    const isHealthCheck = isHealthCheckWebhook(req.body);
+
     if (await isFromQuicknode(req)) {
-      console.info("Received QuickNode Webhook:", req.body);
+      // Skip verbose logging for health check webhooks to reduce log noise
+      if (!isHealthCheck) {
+        console.info("Received QuickNode Webhook:", req.body);
+      }
     } else if (await hasAuthToken(req)) {
       console.info("Received Call with auth token:", req.body);
     } else {
