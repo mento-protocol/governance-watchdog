@@ -37,6 +37,20 @@ QN_API_BASE="https://api.quicknode.com/webhooks/rest/v1/webhooks"
 log() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 success() { printf '✅ %s\n' "$*"; }
 info() { printf '   %s\n' "$*"; }
+
+# curl wrapper: captures body + HTTP status, returns body via stdout.
+# Exits non-zero and prints the response body when HTTP status is not 2xx.
+curl_api() {
+	local raw http_code body
+	raw=$(curl -s -w "\n__HTTP_STATUS__%{http_code}" "$@" 2>&1)
+	http_code=$(printf '%s' "${raw}" | grep -o '__HTTP_STATUS__[0-9]*' | grep -o '[0-9]*')
+	body=$(printf '%s' "${raw}" | sed 's/__HTTP_STATUS__[0-9]*$//')
+	if [[ ! ${http_code} =~ ^2 ]]; then
+		printf '%s\n' "${body}"
+		return 1
+	fi
+	printf '%s\n' "${body}"
+}
 # ------------------------------------------------------------------------------
 
 fetch_api_key() {
@@ -78,11 +92,12 @@ deploy_webhook() {
 	# Step 1: Pause the webhook
 	log "Step 1/3: Pausing webhook..."
 	local pause_response
-	pause_response=$(curl -sf -X PATCH "${QN_API_BASE}/${webhook_id}" \
+	pause_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
 		-H "x-api-key: ${QN_API_KEY}" \
 		-H "Content-Type: application/json" \
-		-d '{"status": "paused"}' 2>&1) || {
-		echo "❌ Failed to pause webhook: ${pause_response}"
+		-d '{"status": "paused"}') || {
+		echo "❌ Failed to pause webhook. API response:"
+		echo "${pause_response}"
 		exit 1
 	}
 	success "Webhook paused"
@@ -97,13 +112,14 @@ print(json.dumps(payload))
 " "${encoded_filter}")
 
 	local update_response
-	update_response=$(curl -sf -X PATCH "${QN_API_BASE}/${webhook_id}" \
+	update_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
 		-H "x-api-key: ${QN_API_KEY}" \
 		-H "Content-Type: application/json" \
-		-d "${update_payload}" 2>&1) || {
-		echo "❌ Failed to update filter function: ${update_response}"
+		-d "${update_payload}") || {
+		echo "❌ Failed to update filter function. API response:"
+		echo "${update_response}"
 		echo "⚠️  Attempting to reactivate webhook before exiting..."
-		curl -sf -X PATCH "${QN_API_BASE}/${webhook_id}" \
+		curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
 			-H "x-api-key: ${QN_API_KEY}" \
 			-H "Content-Type: application/json" \
 			-d '{"status": "active"}' >/dev/null 2>&1 || true
@@ -114,11 +130,12 @@ print(json.dumps(payload))
 	# Step 3: Reactivate the webhook
 	log "Step 3/3: Reactivating webhook..."
 	local activate_response
-	activate_response=$(curl -sf -X PATCH "${QN_API_BASE}/${webhook_id}" \
+	activate_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
 		-H "x-api-key: ${QN_API_KEY}" \
 		-H "Content-Type: application/json" \
-		-d '{"status": "active"}' 2>&1) || {
-		echo "❌ Failed to reactivate webhook: ${activate_response}"
+		-d '{"status": "active"}') || {
+		echo "❌ Failed to reactivate webhook. API response:"
+		echo "${activate_response}"
 		echo "⚠️  Webhook is still paused! Manually reactivate at: https://dashboard.quicknode.com"
 		exit 1
 	}
@@ -127,9 +144,13 @@ print(json.dumps(payload))
 	# Verify
 	log "Verifying deployment..."
 	local verify_response
-	verify_response=$(curl -sf "${QN_API_BASE}/${webhook_id}" \
+	verify_response=$(curl_api "${QN_API_BASE}/${webhook_id}" \
 		-H "x-api-key: ${QN_API_KEY}" \
-		-H "Content-Type: application/json" 2>&1)
+		-H "Content-Type: application/json") || {
+		echo "❌ Failed to verify webhook. API response:"
+		echo "${verify_response}"
+		exit 1
+	}
 	local live_status
 	live_status=$(echo "${verify_response}" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('status','unknown'))")
 	local has_filter
