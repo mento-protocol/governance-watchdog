@@ -96,24 +96,33 @@ deploy_webhook() {
 	# The internal template ID for PATCH is "evmAbiFilterGo" (evmAbiFilter is the display name).
 	local payload_file
 	payload_file=$(mktemp /tmp/qn_payload.XXXXXX.json)
+	# Ensure temp file is always cleaned up, even on SIGINT/SIGTERM
+	# shellcheck disable=SC2064
+	trap "rm -f '${payload_file}'" EXIT
 
 	# Build templateArgs payload: abiJson must be a raw JSON string (not a parsed object).
 	# Use env vars to avoid shell quoting issues with large ABI strings.
+	# Regex anchors on "contracts:" newline to avoid truncating multi-event ABIs.
 	QN_FILTER_FILE="${filter_file}" QN_PAYLOAD_FILE="${payload_file}" python3 -c '
 import re, json, os, sys
 content = open(os.environ["QN_FILTER_FILE"]).read()
-m = re.search(r"/[*].*?template: evmAbiFilter\s+abi: (\[.*?\])\s+contracts: (.+?)\s*[*]/", content, re.DOTALL)
+m = re.search(r"/[*].*?template: evmAbiFilter\s+abi: (\[.*?\])\s*\ncontracts: (.+?)\s*[*]/", content, re.DOTALL)
 if not m:
     print("ERROR: could not parse abi/contracts from comment header", file=sys.stderr)
     sys.exit(1)
 abi_str = m.group(1)
+# Validate ABI is well-formed JSON before sending to API
+try:
+    json.loads(abi_str)
+except json.JSONDecodeError as e:
+    print(f"ERROR: ABI is not valid JSON: {e}", file=sys.stderr)
+    sys.exit(1)
 contracts = [c.strip() for c in m.group(2).strip().split(",")]
 payload = {"templateArgs": {"abiJson": abi_str, "contracts": contracts}}
 with open(os.environ["QN_PAYLOAD_FILE"], "w") as f:
     json.dump(payload, f)
 ' || {
 		echo "❌ Failed to parse ABI/contracts from ${filter_file}"
-		rm -f "${payload_file}"
 		exit 1
 	}
 
@@ -129,10 +138,8 @@ with open(os.environ["QN_PAYLOAD_FILE"], "w") as f:
 		--data-binary "@${payload_file}") || {
 		echo "❌ Failed to update template args. API response:"
 		echo "${update_response}"
-		rm -f "${payload_file}"
 		exit 1
 	}
-	rm -f "${payload_file}"
 	success "Template args updated"
 
 	# Verify
