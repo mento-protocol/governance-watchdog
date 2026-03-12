@@ -91,7 +91,7 @@ deploy_webhook() {
 	# templateArgs: { abi, contracts }.
 
 	# Extract abi JSON array and contracts array from the .js file comment header
-	local abi_json contracts_json
+	local abi_json
 	abi_json=$(python3 -c "
 import re, sys
 content = open(sys.argv[1]).read()
