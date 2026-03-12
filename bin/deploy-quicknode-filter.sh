@@ -91,47 +91,48 @@ deploy_webhook() {
 	# templateArgs: { abi, contracts }.
 
 	# Extract abi JSON array and contracts array from the .js file comment header
-	local abi_json
-	abi_json=$(python3 -c "
-import re, sys
-content = open(sys.argv[1]).read()
-# Extract 'abi: <JSON>' from the comment block
-m = re.search(r'/\*.*?template: evmAbiFilter\s+abi: (\[.*?\])\s+contracts: (.+?)\s*\*/', content, re.DOTALL)
+	# Parse ABI (as raw JSON string) and contracts from the .js file comment header.
+	# templateArgs.abiJson must be a string (not a parsed object).
+	# The internal template ID for PATCH is "evmAbiFilterGo" (evmAbiFilter is the display name).
+	local payload_file
+	payload_file=$(mktemp /tmp/qn_payload.XXXXXX.json)
+
+	# Build templateArgs payload: abiJson must be a raw JSON string (not a parsed object).
+	# Use env vars to avoid shell quoting issues with large ABI strings.
+	QN_FILTER_FILE="${filter_file}" QN_PAYLOAD_FILE="${payload_file}" python3 -c '
+import re, json, os, sys
+content = open(os.environ["QN_FILTER_FILE"]).read()
+m = re.search(r"/[*].*?template: evmAbiFilter\s+abi: (\[.*?\])\s+contracts: (.+?)\s*[*]/", content, re.DOTALL)
 if not m:
-    print('ERROR: could not parse abi/contracts from comment header', file=sys.stderr)
+    print("ERROR: could not parse abi/contracts from comment header", file=sys.stderr)
     sys.exit(1)
-import json
-abi = json.loads(m.group(1))
-contracts_raw = m.group(2).strip()
-# contracts may be comma-separated addresses
-contracts = [c.strip() for c in contracts_raw.split(',')]
-print(json.dumps({'abi': abi, 'contracts': contracts}))
-" "${filter_file}") || {
+abi_str = m.group(1)
+contracts = [c.strip() for c in m.group(2).strip().split(",")]
+payload = {"templateArgs": {"abiJson": abi_str, "contracts": contracts}}
+with open(os.environ["QN_PAYLOAD_FILE"], "w") as f:
+    json.dump(payload, f)
+' || {
 		echo "❌ Failed to parse ABI/contracts from ${filter_file}"
+		rm -f "${payload_file}"
 		exit 1
 	}
 
-	local update_payload
-	update_payload=$(python3 -c "
-import json, sys
-d = json.loads(sys.argv[1])
-payload = {'templateArgs': {'abi': d['abi'], 'contracts': d['contracts']}}
-print(json.dumps(payload))
-" "${abi_json}")
+	info "Contracts: $(python3 -c "import json; d=json.load(open('${payload_file}')); print(', '.join(d['templateArgs']['contracts']))")"
 
-	info "Contracts: $(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(', '.join(d['templateArgs']['contracts']))" "${update_payload}")"
-
-	# Update via the template endpoint (no pause/unpause needed for template updates)
-	log "Updating template args via /template/evmAbiFilter endpoint..."
+	# Update via template endpoint — internal name is evmAbiFilterGo (evmAbiFilter is display name)
+	# No pause/unpause needed for template updates.
+	log "Updating template args via /template/evmAbiFilterGo endpoint..."
 	local update_response
-	update_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}/template/evmAbiFilter" \
+	update_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}/template/evmAbiFilterGo" \
 		-H "x-api-key: ${QN_API_KEY}" \
 		-H "Content-Type: application/json" \
-		-d "${update_payload}") || {
+		--data-binary "@${payload_file}") || {
 		echo "❌ Failed to update template args. API response:"
 		echo "${update_response}"
+		rm -f "${payload_file}"
 		exit 1
 	}
+	rm -f "${payload_file}"
 	success "Template args updated"
 
 	# Verify
