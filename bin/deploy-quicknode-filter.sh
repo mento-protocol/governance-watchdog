@@ -19,7 +19,7 @@ set -euo pipefail
 # =============================================================================
 
 WEBHOOK_TARGET="${1:-all}"
-if [[ "${WEBHOOK_TARGET}" == "--webhook" ]]; then
+if [[ ${WEBHOOK_TARGET} == "--webhook" ]]; then
 	WEBHOOK_TARGET="${2:-all}"
 fi
 
@@ -42,14 +42,14 @@ info() { printf '   %s\n' "$*"; }
 fetch_api_key() {
 	log "Fetching QuickNode API key from Secret Manager..."
 	project_id=$(gcloud config get-value project 2>/dev/null)
-	if [[ -z "${project_id}" ]]; then
+	if [[ -z ${project_id} ]]; then
 		echo "❌ No gcloud project set. Run: gcloud config set project <project-id>"
 		exit 1
 	fi
 	QN_API_KEY=$(gcloud secrets versions access latest \
 		--secret=quicknode-api-key \
 		--project="${project_id}" 2>/dev/null)
-	if [[ -z "${QN_API_KEY}" ]]; then
+	if [[ -z ${QN_API_KEY} ]]; then
 		echo "❌ Could not fetch QuickNode API key from Secret Manager."
 		echo "   Make sure your gcloud account has secretmanager.secretAccessor on the project."
 		exit 1
@@ -65,7 +65,7 @@ deploy_webhook() {
 	log "Deploying filter for webhook: ${webhook_name} (${webhook_id})"
 	info "Filter file: ${filter_file}"
 
-	if [[ ! -f "${filter_file}" ]]; then
+	if [[ ! -f ${filter_file} ]]; then
 		echo "❌ Filter file not found: ${filter_file}"
 		exit 1
 	fi
@@ -138,7 +138,7 @@ print(json.dumps(payload))
 	info "Status: ${live_status}"
 	info "Filter present: ${has_filter}"
 
-	if [[ "${live_status}" == "active" && "${has_filter}" == "yes" ]]; then
+	if [[ ${live_status} == "active" && ${has_filter} == "yes" ]]; then
 		success "Webhook ${webhook_name} deployed successfully!"
 	else
 		echo "⚠️  Unexpected state after deploy. Check QuickNode dashboard."
