@@ -32,6 +32,14 @@ HEALTHCHECK_WEBHOOK_ID="dc35c3c4-b839-49f6-836b-6ffb7c087419"
 GOVERNOR_WEBHOOK_ID="73a99141-e8cb-411a-9732-c42a031cebe6"
 
 QN_API_BASE="https://api.quicknode.com/webhooks/rest/v1/webhooks"
+TMP_FILES=()
+
+cleanup_temp_files() {
+	if (( ${#TMP_FILES[@]} > 0 )); then
+		rm -f "${TMP_FILES[@]}"
+	fi
+}
+trap cleanup_temp_files EXIT
 
 # ------------------------------------------------------------------------------
 log() { printf '\n\033[1m%s\033[0m\n' "$*"; }
@@ -96,9 +104,7 @@ deploy_webhook() {
 	# The internal template ID for PATCH is "evmAbiFilterGo" (evmAbiFilter is the display name).
 	local payload_file
 	payload_file=$(mktemp /tmp/qn_payload.XXXXXX.json)
-	# Ensure temp file is always cleaned up, even on SIGINT/SIGTERM
-	# shellcheck disable=SC2064
-	trap "rm -f '${payload_file}'" EXIT
+	TMP_FILES+=("${payload_file}")
 
 	# Build templateArgs payload: abiJson must be a raw JSON string (not a parsed object).
 	# Use env vars to avoid shell quoting issues with large ABI strings.
