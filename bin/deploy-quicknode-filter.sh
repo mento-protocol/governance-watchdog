@@ -84,62 +84,63 @@ deploy_webhook() {
 		exit 1
 	fi
 
-	# Base64-encode the filter function
-	local encoded_filter
-	encoded_filter=$(base64 <"${filter_file}" | tr -d '\n')
-	info "Encoded filter: ${#encoded_filter} chars"
+	# These are evmAbiFilter template-based webhooks. The .js filter file embeds the
+	# ABI and contract addresses in the comment header and in the JS code itself.
+	# Template-based webhooks cannot have filter_function updated directly via PATCH
+	# /webhooks/{id} — they require PATCH /webhooks/{id}/template/{templateId} with
+	# templateArgs: { abi, contracts }.
 
-	# Step 1: Pause the webhook
-	log "Step 1/3: Pausing webhook..."
-	local pause_response
-	pause_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
-		-H "x-api-key: ${QN_API_KEY}" \
-		-H "Content-Type: application/json" \
-		-d '{"status": "paused"}') || {
-		echo "❌ Failed to pause webhook. API response:"
-		echo "${pause_response}"
+	# Extract abi JSON array and contracts array from the .js file comment header
+	# Parse ABI (as raw JSON string) and contracts from the .js file comment header.
+	# templateArgs.abiJson must be a string (not a parsed object).
+	# The internal template ID for PATCH is "evmAbiFilterGo" (evmAbiFilter is the display name).
+	local payload_file
+	payload_file=$(mktemp /tmp/qn_payload.XXXXXX.json)
+	# Ensure temp file is always cleaned up, even on SIGINT/SIGTERM
+	# shellcheck disable=SC2064
+	trap "rm -f '${payload_file}'" EXIT
+
+	# Build templateArgs payload: abiJson must be a raw JSON string (not a parsed object).
+	# Use env vars to avoid shell quoting issues with large ABI strings.
+	# Regex anchors on "contracts:" newline to avoid truncating multi-event ABIs.
+	QN_FILTER_FILE="${filter_file}" QN_PAYLOAD_FILE="${payload_file}" python3 -c '
+import re, json, os, sys
+content = open(os.environ["QN_FILTER_FILE"]).read()
+m = re.search(r"/[*].*?template: evmAbiFilter\s+abi: (\[.*?\])\s*\ncontracts: (.+?)\s*[*]/", content, re.DOTALL)
+if not m:
+    print("ERROR: could not parse abi/contracts from comment header", file=sys.stderr)
+    sys.exit(1)
+abi_str = m.group(1)
+# Validate ABI is well-formed JSON before sending to API
+try:
+    json.loads(abi_str)
+except json.JSONDecodeError as e:
+    print(f"ERROR: ABI is not valid JSON: {e}", file=sys.stderr)
+    sys.exit(1)
+contracts = [c.strip() for c in m.group(2).strip().split(",")]
+payload = {"templateArgs": {"abiJson": abi_str, "contracts": contracts}}
+with open(os.environ["QN_PAYLOAD_FILE"], "w") as f:
+    json.dump(payload, f)
+' || {
+		echo "❌ Failed to parse ABI/contracts from ${filter_file}"
 		exit 1
 	}
-	success "Webhook paused"
 
-	# Step 2: Update the filter function
-	log "Step 2/3: Updating filter function..."
-	local update_payload
-	update_payload=$(python3 -c "
-import json, sys
-payload = {'filter_function': sys.argv[1]}
-print(json.dumps(payload))
-" "${encoded_filter}")
+	info "Contracts: $(python3 -c "import json; d=json.load(open('${payload_file}')); print(', '.join(d['templateArgs']['contracts']))")"
 
+	# Update via template endpoint — internal name is evmAbiFilterGo (evmAbiFilter is display name)
+	# No pause/unpause needed for template updates.
+	log "Updating template args via /template/evmAbiFilterGo endpoint..."
 	local update_response
-	update_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
+	update_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}/template/evmAbiFilterGo" \
 		-H "x-api-key: ${QN_API_KEY}" \
 		-H "Content-Type: application/json" \
-		-d "${update_payload}") || {
-		echo "❌ Failed to update filter function. API response:"
+		--data-binary "@${payload_file}") || {
+		echo "❌ Failed to update template args. API response:"
 		echo "${update_response}"
-		echo "⚠️  Attempting to reactivate webhook before exiting..."
-		curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
-			-H "x-api-key: ${QN_API_KEY}" \
-			-H "Content-Type: application/json" \
-			-d '{"status": "active"}' >/dev/null 2>&1 || true
 		exit 1
 	}
-	success "Filter function updated"
-
-	# Step 3: Reactivate the webhook
-	log "Step 3/3: Reactivating webhook..."
-	local activate_response
-	activate_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}" \
-		-H "x-api-key: ${QN_API_KEY}" \
-		-H "Content-Type: application/json" \
-		-d '{"status": "active"}') || {
-		echo "❌ Failed to reactivate webhook. API response:"
-		echo "${activate_response}"
-		echo "⚠️  Webhook is still paused! Manually reactivate at: https://dashboard.quicknode.com"
-		exit 1
-	}
-	success "Webhook reactivated"
+	success "Template args updated"
 
 	# Verify
 	log "Verifying deployment..."
@@ -153,16 +154,16 @@ print(json.dumps(payload))
 	}
 	local live_status
 	live_status=$(echo "${verify_response}" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('status','unknown'))")
-	local has_filter
-	has_filter=$(echo "${verify_response}" | python3 -c "import json,sys; d=json.load(sys.stdin); print('yes' if d.get('filter_function') else 'no')")
+	local template_id
+	template_id=$(echo "${verify_response}" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('templateId','none'))")
 
 	info "Status: ${live_status}"
-	info "Filter present: ${has_filter}"
+	info "Template: ${template_id}"
 
-	if [[ ${live_status} == "active" && ${has_filter} == "yes" ]]; then
+	if [[ ${live_status} == "active" ]]; then
 		success "Webhook ${webhook_name} deployed successfully!"
 	else
-		echo "⚠️  Unexpected state after deploy. Check QuickNode dashboard."
+		echo "⚠️  Unexpected status '${live_status}' after deploy. Check QuickNode dashboard."
 		exit 1
 	fi
 }
