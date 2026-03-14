@@ -12,7 +12,6 @@
     "deploy:function": "./bin/deploy-via-gcloud.sh",
     "destroy": "terraform -chdir=infra destroy",
     "dev": "nodemon --ext ts --ignore dist --exec \"npm run start\"",
-    "dev:webhook:healthcheck": "nodemon --watch infra/quicknode-filter-functions/sorted-oracles.js --exec \"node bin/update-quicknode-filter.js\"",
     "gcp-build": "npm run build",
     "generate:env": "terraform -chdir=infra apply -target=local_file.env_file",
     "logs": "./bin/get-logs.sh",
@@ -20,7 +19,9 @@
     "reprocess:event": "tsx bin/reprocess-event.ts",
     "prestart": "npm run build",
     "start": "NODE_ENV=development functions-framework --target=governanceWatchdog",
-    "test": "npm run test:local:ProposalCreated && npm run test:local:ProposalQueued && npm run test:local:ProposalExecuted && npm run test:local:ProposalCanceled && npm run test:local:healthcheck",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "npm run test:local:ProposalCreated && npm run test:local:ProposalQueued && npm run test:local:ProposalExecuted && npm run test:local:ProposalCanceled && npm run test:local:healthcheck",
     "test:local:ProposalCanceled": "curl -H \"Content-Type: application/json\" -d @src/events/fixtures/proposal-canceled.fixture.json localhost:8080",
     "test:local:ProposalCreated": "curl -H \"Content-Type: application/json\" -d @src/events/fixtures/proposal-created.fixture.json localhost:8080",
     "test:local:ProposalExecuted": "curl -H \"Content-Type: application/json\" -d @src/events/fixtures/proposal-executed.fixture.json localhost:8080",
@@ -31,10 +32,13 @@
     "test:prod:ProposalExecuted": "./bin/test-deployed-function.sh ProposalExecuted",
     "test:prod:ProposalQueued": "./bin/test-deployed-function.sh ProposalQueued",
     "test:prod:healthcheck": "./bin/test-deployed-function.sh healthcheck",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "todo": "git ls-files -c --exclude-standard | grep -v \"package.json\" | xargs grep -n -i --color \"TODO:\\|FIXME:\""
   },
   "overrides": {
-    "undici": "^6.23.0"
+    "flatted": ">=3.4.0",
+    "undici": ">=6.24.0"
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.4.6",
@@ -48,12 +52,14 @@
     "@eslint/js": "^9.22.0",
     "@types/eslint": "^9.6.1",
     "@types/node": "^22.10.5",
+    "@vitest/coverage-v8": "^4.1.0",
     "eslint": "^9.22.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.26.1"
+    "typescript-eslint": "^8.26.1",
+    "vitest": "^4.1.0"
   }
 }

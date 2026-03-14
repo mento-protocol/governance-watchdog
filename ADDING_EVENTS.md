@@ -55,17 +55,20 @@ function main(data) {
 }
 ```
 
-**Enable hot-reload** to automatically update the filter function in Terraform:
+**Deploy the updated filter to QuickNode** using the deploy script:
 
 ```bash
-# For governance events
-npm run dev:webhook:governor
+# Deploy a specific webhook
+./bin/deploy-quicknode-filter.sh --webhook healthcheck   # SortedOracles
+./bin/deploy-quicknode-filter.sh --webhook governor      # MentoGovernor
 
-# For oracle/sorted-oracles events
-npm run dev:webhook:healthcheck
+# Deploy both
+./bin/deploy-quicknode-filter.sh
 ```
 
-This watches for changes to your filter function file and automatically base64-encodes it into [`infra/quicknode.tf`](infra/quicknode.tf).
+The deploy script reads the ABI and contract addresses from the `/* template: evmAbiFilter ... */` comment header at the top of each filter file and applies the update live via `PATCH /webhooks/{id}/template/evmAbiFilterGo` (no downtime required).
+
+> **Note:** The old `npm run dev:webhook:*` scripts and `bin/update-quicknode-filter.js` are legacy — they updated `infra/quicknode.tf` which is never applied to live webhooks (`ignore_all_server_changes = true`). Use `deploy-quicknode-filter.sh` instead.
 
 #### 3. Test the Filter Function with Real Blockchain Data
 
@@ -104,36 +107,29 @@ Once your filter function works correctly:
 
 **Pro tip:** Using real data ensures your fixture accurately represents what QuickNode will send in production.
 
-#### 5. Clean Up and Migrate to Terraform
+#### 5. Clean Up and Make Permanent
 
-1. **Delete the temporary webhook** from the [QuickNode Webhooks Dashboard](https://dashboard.quicknode.com/webhooks)
-1. **Write Terraform code** in [`infra/quicknode.tf`](infra/quicknode.tf) to automate webhook creation:
+1. **Delete the temporary test webhook** from the [QuickNode Webhooks Dashboard](https://dashboard.quicknode.com/webhooks) (the one you created manually for testing).
 
-```hcl
-resource "quicknode_webhook" "your_event_webhook" {
-  name              = "Your Event Webhook"
-  url               = google_cloudfunctions2_function.watchdog_notifications.url
-  network           = "celo-mainnet"
-  dataset           = "block"
-  enabled           = true
+2. **Update the filter file comment header** with your final ABI and contract address:
 
-  filter_function = base64encode(file("${path.module}/quicknode-filter-functions/your-filter.js"))
+   ```js
+   /*
+   template: evmAbiFilter
+   abi: [{...your trimmed ABI events...}]
+   contracts: 0xYourContractAddress
+   */
+   ```
 
-  headers = {
-    "X-AUTH-TOKEN" = var.x_auth_token
-  }
-}
-```
+   Keep only the events your handler actually uses — this reduces Cloud Function invocation volume.
 
-1. **Deploy the webhook via Terraform**:
+3. **Deploy to the permanent webhook** via:
 
-```bash
-cd infra
-terraform plan   # Review changes
-terraform apply  # Create the webhook
-```
+   ```bash
+   ./bin/deploy-quicknode-filter.sh --webhook <healthcheck|governor>
+   ```
 
-**Note:** If updating an existing webhook's filter function, you may need to pause it first or destroy and recreate it (see [README](README.md#workflow) for details).
+   > **Note:** Terraform (`infra/quicknode.tf`) manages webhook _creation_ but cannot update filter configuration on existing webhooks (`ignore_all_server_changes = true`). All filter updates go through `bin/deploy-quicknode-filter.sh`.
 
 ### Part 2: Implement TypeScript Event Handler
 

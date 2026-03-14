@@ -5,16 +5,16 @@ set -euo pipefail
 # =============================================================================
 # DEPLOY QUICKNODE FILTER FUNCTIONS
 #
-# QuickNode's API rejects PATCH requests to active webhooks, so Terraform
-# can't manage filter_function updates via normal `terraform apply`.
-# This script handles the pause → update → activate lifecycle manually.
+# Webhooks use the evmAbiFilter template. Updates are applied live via:
+#   PATCH /webhooks/{id}/template/evmAbiFilterGo
+# No pause or downtime needed — template arg updates take effect immediately.
 #
 # Usage:
 #   ./bin/deploy-quicknode-filter.sh [--webhook healthcheck|governor|all]
 #
 # Prerequisites:
 #   - gcloud CLI authenticated with access to the governance-watchdog project
-#   - curl, base64, python3 available
+#   - curl, python3 available
 #   - QuickNode API key stored in GCP Secret Manager as "quicknode-api-key"
 # =============================================================================
 
@@ -28,10 +28,24 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 FILTER_DIR="${REPO_ROOT}/infra/quicknode-filter-functions"
 
 # Webhook IDs (from QuickNode API)
+# Webhook IDs are server-assigned by QuickNode and will change if webhooks are deleted and recreated.
+# To find current IDs: curl -s -H "x-api-key: <key>" https://api.quicknode.com/webhooks/rest/v1/webhooks | jq '.data[] | {id, name}'
+# Or check the URL when viewing a webhook in the QuickNode dashboard.
 HEALTHCHECK_WEBHOOK_ID="dc35c3c4-b839-49f6-836b-6ffb7c087419"
 GOVERNOR_WEBHOOK_ID="73a99141-e8cb-411a-9732-c42a031cebe6"
 
 QN_API_BASE="https://api.quicknode.com/webhooks/rest/v1/webhooks"
+
+# Global array to track temp files created by deploy_webhook invocations.
+# A single EXIT trap at script level cleans them all up, avoiding the problem
+# of per-call traps overwriting the previous trap registration.
+TMP_FILES=()
+cleanup_temp_files() {
+	if ((${#TMP_FILES[@]} > 0)); then
+		rm -f "${TMP_FILES[@]}"
+	fi
+}
+trap cleanup_temp_files EXIT
 
 # ------------------------------------------------------------------------------
 log() { printf '\n\033[1m%s\033[0m\n' "$*"; }
@@ -96,9 +110,7 @@ deploy_webhook() {
 	# The internal template ID for PATCH is "evmAbiFilterGo" (evmAbiFilter is the display name).
 	local payload_file
 	payload_file=$(mktemp /tmp/qn_payload.XXXXXX.json)
-	# Ensure temp file is always cleaned up, even on SIGINT/SIGTERM
-	# shellcheck disable=SC2064
-	trap "rm -f '${payload_file}'" EXIT
+	TMP_FILES+=("${payload_file}")
 
 	# Build templateArgs payload: abiJson must be a raw JSON string (not a parsed object).
 	# Use env vars to avoid shell quoting issues with large ABI strings.
@@ -128,8 +140,14 @@ with open(os.environ["QN_PAYLOAD_FILE"], "w") as f:
 
 	info "Contracts: $(python3 -c "import json; d=json.load(open('${payload_file}')); print(', '.join(d['templateArgs']['contracts']))")"
 
-	# Update via template endpoint — internal name is evmAbiFilterGo (evmAbiFilter is display name)
-	# No pause/unpause needed for template updates.
+	# Update via template endpoint.
+	# NOTE on field names vs the OpenAPI spec:
+	#   The public OpenAPI spec (evmAbiFilter schema) lists the field as "abi".
+	#   The actual live endpoint (evmAbiFilterGo) requires "abiJson" — empirically
+	#   confirmed: sending "abi" returns a 500, sending "abiJson" succeeds.
+	#   The display name in the UI is "evmAbiFilter"; the internal PATCH path uses
+	#   "evmAbiFilterGo". Both discrepancies are QuickNode API inconsistencies.
+	# No pause/unpause needed — template updates are applied hot.
 	log "Updating template args via /template/evmAbiFilterGo endpoint..."
 	local update_response
 	update_response=$(curl_api -X PATCH "${QN_API_BASE}/${webhook_id}/template/evmAbiFilterGo" \
