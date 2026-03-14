@@ -209,54 +209,40 @@ The centralized event system makes adding new events straightforward—just upda
 
 ## Developing QuickNode Webhook Filter Functions
 
-QuickNode webhooks use [JavaScript filter functions](https://www.quicknode.com/docs/streams/filters?#example-filter-functions) that run on QuickNode's servers to determine which blockchain events should trigger notifications to our Cloud Function. These filters are base64-encoded and stored in [`infra/quicknode.tf`](./infra/quicknode.tf) under the `filter_function` properties.
+QuickNode webhooks use the `evmAbiFilter` template to match blockchain events by ABI event signature. Filter configuration (ABI and contract addresses) lives in the comment header of each filter file under [`infra/quicknode-filter-functions/`](./infra/quicknode-filter-functions/).
+
+> **Note:** The `filter_function` base64 blobs in `infra/quicknode.tf` and the old `bin/update-quicknode-filter.js` script are **legacy artefacts**. They are not deployed — `ignore_all_server_changes = true` in Terraform prevents Terraform from pushing any changes to existing webhooks. All deploys go through `bin/deploy-quicknode-filter.sh`.
 
 ### Workflow
 
-1. [OPTIONAL] If you want to first double-check which code is actually deployed right now:
-   - Navigate to the [QuickNode Webhooks Dashboard](https://dashboard.quicknode.com/webhooks)
-   - Click the Webhook you're developing
-   - Copy the webhook ID from the URL into your clipboard
-   - Obtain the current filter function via:
+1. **Edit the filter file** at [`infra/quicknode-filter-functions/sorted-oracles.js`](./infra/quicknode-filter-functions/sorted-oracles.js) or [`governor.js`](./infra/quicknode-filter-functions/governor.js).
 
-     ```bash
-     curl -X GET \
-        "https://api.quicknode.com/webhooks/rest/v1/webhooks/$webhook_id" \
-        -H "accept: application/json" \
-        -H "x-api-key: $quicknode_api_key" \
-        | jq -r .filter_function \
-        | base64 -d
-     ```
+   The comment header at the top of each file is the deployment source of truth:
 
-2. **Open the filter function** in plain JavaScript at [`infra/quicknode-filter-functions/sorted-oracles.js`](./infra/quicknode-filter-functions/sorted-oracles.js)
-
-3. **Enable hot-reload** to automatically update the Terraform file:
-
-   ```sh
-   # Run the cmd for the webhook you're interested in
-   npm run dev:webhook:healthcheck
+   ```js
+   /*
+   template: evmAbiFilter
+   abi: [{...}]
+   contracts: 0xYourContractAddress
+   */
    ```
 
-   This will watch for changes to `sorted-oracles.js` (which we're using as the healthcheck) and automatically:
-   - Base64 encode the updated function
-   - Update the `filter_function` field in the `quicknode_webhook_healthcheck` resource in `quicknode.tf`
-   - Create a timestamped backup of `quicknode.tf` before making changes
-
-4. **Make your changes** to `sorted-oracles.js` and save the file. The script will automatically update `quicknode.tf`.
-
-5. **Review the changes** with `git diff infra/quicknode.tf` to ensure the filter function was updated correctly.
-
-6. **Deploy to QuickNode**:
+2. **Deploy to QuickNode** using the deploy script:
 
    ```sh
-   cd infra
-   terraform plan   # Review changes
-   terraform apply  # Deploy
+   ./bin/deploy-quicknode-filter.sh --webhook healthcheck   # SortedOracles
+   ./bin/deploy-quicknode-filter.sh --webhook governor      # MentoGovernor
+   ./bin/deploy-quicknode-filter.sh                         # both
    ```
 
-   **⚠️ Important:** QuickNode rejects updates to active webhooks. You must either:
-   - Pause the webhook first (set `status = "paused"` in the resource, run `terraform apply`, then update the filter function, then set `status = "active"` and `terraform apply` again)
-   - OR comment out the webhook resource, `terraform apply` to delete it, uncomment with your changes, and `terraform apply` to recreate it
+   This reads the ABI and contract addresses from the comment header, builds the `templateArgs` payload, and calls `PATCH /webhooks/{id}/template/evmAbiFilterGo` to apply the update live (no downtime).
+
+3. **Verify** by checking the [QuickNode Webhooks Dashboard](https://dashboard.quicknode.com/webhooks) or inspecting the raw webhook via:
+
+   ```bash
+   curl -X GET "https://api.quicknode.com/webhooks/rest/v1/webhooks/$webhook_id" \
+     -H "x-api-key: $quicknode_api_key"
+   ```
 
 ### Filter Function Structure
 
@@ -266,6 +252,8 @@ The filter functions follow QuickNode's `evmAbiFilter` template:
 - They filter for specific event types and contract addresses
 - They can include custom filtering logic (e.g., filtering by specific token addresses)
 - They return matching events or `null` if no matches found
+
+> **Important quirk:** The `evmAbiFilter` template filters by topic hash only — the `contracts` address filter in `templateArgs` is currently **silently ignored** by QuickNode's API. All addresses that emit a matching event signature will trigger the webhook. Address filtering must be done in the Cloud Function handler.
 
 See the [QuickNode Webhooks documentation](https://www.quicknode.com/docs/webhooks/getting-started) for more details on filter function syntax.
 
