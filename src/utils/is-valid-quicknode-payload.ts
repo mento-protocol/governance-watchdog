@@ -12,14 +12,15 @@ export default function isValidQuicknodePayload(
     "result" in requestBody &&
     Array.isArray((requestBody as QuicknodePayload).result) &&
     (requestBody as QuicknodePayload).result.every((event) => {
+      const e = event as unknown as Record<string, unknown>;
       return (
         typeof event === "object" &&
-        typeof (event as Record<string, unknown>).address === "string" &&
-        typeof (event as Record<string, unknown>).blockHash === "string" &&
-        typeof (event as Record<string, unknown>).blockNumber === "string" &&
-        typeof (event as Record<string, unknown>).logIndex === "string" &&
-        typeof (event as Record<string, unknown>).name === "string" &&
-        typeof (event as Record<string, unknown>).transactionHash === "string"
+        typeof e.address === "string" &&
+        typeof e.blockHash === "string" &&
+        typeof e.blockNumber === "string" &&
+        typeof e.logIndex === "string" &&
+        typeof e.name === "string" &&
+        typeof e.transactionHash === "string"
       );
     })
   );
