@@ -99,10 +99,7 @@ resource "google_monitoring_alert_policy" "error_logs_policy" {
     content   = <<-EOT
       ## Error detected in Governance Watchdog Cloud Function
 
-      **View incident with logs:** $${incident.url}
-      _(Click "View Logs" in the incident page to see logs around the error time)_
-
-      Or view all recent errors: https://console.cloud.google.com/logs/query;query=severity%3E%3DERROR%20AND%20resource.labels.service_name%3D%22${google_cloudfunctions2_function.watchdog_notifications.name}%22
+      **View recent errors:** https://console.cloud.google.com/logs/query;query=severity%3E%3DERROR%20AND%20resource.labels.service_name%3D%22${google_cloudfunctions2_function.watchdog_notifications.name}%22
     EOT
     mime_type = "text/markdown"
   }
