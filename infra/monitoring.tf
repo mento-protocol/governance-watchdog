@@ -99,16 +99,19 @@ resource "google_monitoring_alert_policy" "error_logs_policy" {
     content   = <<-EOT
       ## Error detected in Governance Watchdog Cloud Function
 
-      **View logs around this incident:**
-      https://console.cloud.google.com/logs/query;query=severity%3E%3DERROR%20AND%20resource.labels.service_name%3D%22${google_cloudfunctions2_function.watchdog_notifications.name}%22;timeRange=$${incident.started_at}%2F$${incident.started_at}PT1H
+      **View recent error logs:**
+      https://console.cloud.google.com/logs/query;query=severity%3E%3DERROR%20AND%20resource.labels.service_name%3D%22${google_cloudfunctions2_function.watchdog_notifications.name}%22;duration=PT3H
 
-      _(Link shows 1 hour of logs starting from when the alert fired)_
+      _(Link shows last 3 hours of error logs)_
     EOT
     mime_type = "text/markdown"
   }
 
   conditions {
-    display_name = "Error logs detected"
+    # Intentional: requires 2+ errors in a 5-minute window before alerting.
+    # Single transient QuickNode API timeouts (522s) were causing false pages.
+    # A genuine outage will produce sustained errors and still trigger quickly.
+    display_name = "2+ errors in 5 minutes (burst detection)"
 
     condition_threshold {
       filter = <<EOF
@@ -116,12 +119,12 @@ resource "google_monitoring_alert_policy" "error_logs_policy" {
         metric.type   = "logging.googleapis.com/user/${google_logging_metric.error_logs_metric.name}"
       EOF
 
-      duration        = "0s" # Alert immediately
+      duration        = "0s"
       comparison      = "COMPARISON_GT"
-      threshold_value = 0
+      threshold_value = 1 # >1 means 2+ errors required
 
       aggregations {
-        alignment_period     = "60s" # Check every minute
+        alignment_period     = "300s" # 5-minute window
         per_series_aligner   = "ALIGN_SUM"
         cross_series_reducer = "REDUCE_SUM"
       }

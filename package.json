@@ -37,7 +37,7 @@
     "todo": "git ls-files -c --exclude-standard | grep -v \"package.json\" | xargs grep -n -i --color \"TODO:\\|FIXME:\""
   },
   "overrides": {
-    "flatted": ">=3.4.0",
+    "flatted": ">=3.4.2",
     "undici": ">=6.24.0"
   },
   "dependencies": {
