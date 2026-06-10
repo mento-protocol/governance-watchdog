@@ -1,5 +1,10 @@
 # 🐕 Governance Watchdog
 
+> [!IMPORTANT]
+> **This repository is archived.** The governance-watchdog now lives in the monitoring monorepo:
+> <https://github.com/mento-protocol/monitoring-monorepo/tree/main/governance-watchdog>
+> (moved 2026-06-10 via [monitoring-monorepo#819](https://github.com/mento-protocol/monitoring-monorepo/pull/819); the GCP project and Terraform state were preserved in place). All future changes happen there.
+
 <!-- markdown-link-check-disable -->
 
 A system that monitors Mento Governance events on-chain and sends notifications about them to Discord and Telegram. Mento Devs can view the [full project spec in our Notion.](https://www.notion.so/mentolabs/Governance-Watchdog-d168a8110a53430a90e2f5ab65f103f5?pvs=4)
